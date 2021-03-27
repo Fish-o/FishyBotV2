@@ -116,8 +116,15 @@ export const run: FishyCommandCode = async (client, interaction) => {
     const memberId = interaction.args[0].options.find(
       (arg) => arg.name === "member"
     )?.value;
-    const id = interaction.args.find((arg) => arg.name === "id")?.value;
+    const id = interaction.args[0].options.find((arg) => arg.name === "id")?.value;
     if (!memberId || !id) return;
+    const db_guild = await interaction.getDbGuild();
+    if(!db_guild.warnings[memberId]){
+      return interaction.send(new ErrorEmbed(`There is no warning #${id} for "${interaction.guild?.members.cache.get(memberId)?.user.tag}"`))
+    } else if(db_guild.warnings[memberId].removed == true){
+      return interaction.send(new ErrorEmbed(`The warning #${id} for "${interaction.guild?.members.cache.get(memberId)?.user.tag}" was already deleted
+      `))
+    }
     let res = await interaction.updateDbGuild({
       $set: { [`warnings.${id}.removed`]: true },
     });
@@ -126,8 +133,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
       .setColor("BLUE")
       .setTimestamp()
       .setTitle("Removed warning")
-      .setDescription(`Removed warning #{res.}`);
-    interaction.send();
+      .setDescription(`Succesfully removed warning #${id} from "${interaction.guild?.members.cache.get(memberId)}"`)
+    interaction.send(embed);
   }
 };
 
