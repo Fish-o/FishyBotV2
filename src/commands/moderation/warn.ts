@@ -193,4 +193,6 @@ export const config: FishyCommandConfig = {
   },
 };
 export const help: FishyCommandHelp = {
-  descr
+  description: "Warn a member",
+  usage: "/warn [add/list/remove] member",
+};
