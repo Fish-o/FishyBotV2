@@ -10,3 +10,11 @@ let Client = new FishyBot.FishyClient({
   guild_model: GuildModel,
 });
 Client.login();
+
+
+// TODO: Custom commands
+// TODO: Welcome screen
+// TODO: Roleperms
+
+
+// TODO: Database import

@@ -46,13 +46,17 @@ export const run: FishyCommandCode = async (client, interaction) => {
 
     await interaction.updateDbGuild({
       $push: {
-        [`warnings.${memberId}`]: { $each: [warn], $position: -1 },
+        [`warnings.${memberId}`]: { $each: [warn] }, //$position: -1 },
       },
     });
-    var bad_pfp = interaction.member?.user.avatarURL();
+    var bad_pfp = interaction.client.users.cache.get(memberId)?.avatarURL();
     const embed = new MessageEmbed();
     embed.setColor("#ff2222");
-    embed.setTitle(`Member: ${interaction.member?.user.tag} has been warned`);
+    embed.setTitle(
+      `Member: "${
+        interaction.data.mentions?.users?.first()?.username
+      }" has been warned`
+    );
     embed.addField("Reason: ", reason);
     embed.setThumbnail(bad_pfp || "");
     interaction.send(embed);
@@ -113,27 +117,43 @@ export const run: FishyCommandCode = async (client, interaction) => {
     embed.setTimestamp();
     interaction.send(embed);
   } else if (action === "remove") {
-    const memberId = interaction.args[0].options.find(
-      (arg) => arg.name === "member"
+    const memberId: String =
+      interaction.data.mentions?.members?.first()?.id ||
+      interaction.data.options[0].options.find((arg) => arg.name === "member")
+        ?.value;
+    const id = interaction.data.options[0].options.find(
+      (arg) => arg.name === "id"
     )?.value;
-    const id = interaction.args[0].options.find((arg) => arg.name === "id")?.value;
-    if (!memberId || !id) return;
+    if (typeof memberId !== "string" || typeof id !== "number") return;
     const db_guild = await interaction.getDbGuild();
-    if(!db_guild.warnings[memberId]){
-      return interaction.send(new ErrorEmbed(`There is no warning #${id} for "${interaction.guild?.members.cache.get(memberId)?.user.tag}"`))
-    } else if(db_guild.warnings[memberId].removed == true){
-      return interaction.send(new ErrorEmbed(`The warning #${id} for "${interaction.guild?.members.cache.get(memberId)?.user.tag}" was already deleted
-      `))
+    if (!db_guild.warnings[memberId]) {
+      return interaction.send(
+        new ErrorEmbed(
+          `There is no warning #${id} for "${
+            interaction.guild?.members.cache.get(memberId)?.user.tag
+          }"`
+        )
+      );
+    } else if (db_guild.warnings[memberId].removed == true) {
+      return interaction.send(
+        new ErrorEmbed(`The warning #${id} for "${
+          interaction.guild?.members.cache.get(memberId)?.user.tag
+        }" was already deleted
+      `)
+      );
     }
     let res = await interaction.updateDbGuild({
-      $set: { [`warnings.${id}.removed`]: true },
+      $set: { [`warnings.${memberId}.${id}.removed`]: true },
     });
-
     const embed = new MessageEmbed()
       .setColor("BLUE")
       .setTimestamp()
       .setTitle("Removed warning")
-      .setDescription(`Succesfully removed warning #${id} from "${interaction.guild?.members.cache.get(memberId)}"`)
+      .setDescription(
+        `Succesfully removed warning #${id} from "${interaction.guild?.members.cache.get(
+          memberId
+        )}"`
+      );
     interaction.send(embed);
   }
 };
