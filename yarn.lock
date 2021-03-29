@@ -16,13 +16,6 @@
     "combined-stream" "^1.0.8"
     "mime-types" "^2.1.12"
 
-"@types/axios@^0.14.0":
-  "integrity" "sha1-7CMA++fX3d1+udOr+HmZlkyvzkY="
-  "resolved" "https://registry.npmjs.org/@types/axios/-/axios-0.14.0.tgz"
-  "version" "0.14.0"
-  dependencies:
-    "axios" "*"
-
 "@types/bson@*":
   "integrity" "sha512-mVRvYnTOZJz3ccpxhr3wgxVmSeiYinW+zlzQz3SXWaJmD1DuL05Jeq7nKw3SnbKmbleW5qrLG5vdyWe/A9sXhw=="
   "resolved" "https://registry.npmjs.org/@types/bson/-/bson-4.0.3.tgz"
@@ -68,7 +61,7 @@
   "resolved" "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz"
   "version" "0.4.0"
 
-"axios@*", "axios@^0.21.1":
+"axios@^0.21.1":
   "integrity" "sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA=="
   "resolved" "https://registry.npmjs.org/axios/-/axios-0.21.1.tgz"
   "version" "0.21.1"
@@ -146,10 +139,10 @@
   "resolved" "https://registry.npmjs.org/event-target-shim/-/event-target-shim-5.0.1.tgz"
   "version" "5.0.1"
 
-"fishy-bot-framework@^0.0.7":
-  "integrity" "sha512-PAlb8vDZi1GoCP6ONC0cJtG1gZSySJTdts9BNt7eqs2V430gQI3pFdmzp8ygQJ3A/A8EUByCib4mqrfshoVV6Q=="
-  "resolved" "https://registry.npmjs.org/fishy-bot-framework/-/fishy-bot-framework-0.0.7.tgz"
-  "version" "0.0.7"
+"fishy-bot-framework@^0.0.8":
+  "integrity" "sha512-woXgjjsLT+J6wN5Z7LnohwJOpFJNsYKUFVnsSEH2H8GwiuITkOC4CQ0tRqVEIydnj6KKT9kGsbYGJLPEPRLtnw=="
+  "resolved" "https://registry.npmjs.org/fishy-bot-framework/-/fishy-bot-framework-0.0.8.tgz"
+  "version" "0.0.8"
   dependencies:
     "@types/mongoose" "^5.10.4"
     "axios" "^0.21.1"

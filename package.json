@@ -1,5 +1,5 @@
 {
-  "name": "FishyBotFrameworkTests",
+  "name": "fishybotv2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,12 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/axios": "^0.14.0",
     "@types/ms": "^0.7.31",
     "axios": "^0.21.1",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
-    "fishy-bot-framework": "^0.0.7",
+    "fishy-bot-framework": "^0.0.8",
     "fuse.js": "^6.4.6",
     "i": "^0.3.6",
     "mongoose": "^5.12.2",

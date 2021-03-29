@@ -114,7 +114,6 @@ export const run: FishyCommandCode = async (client, interaction) => {
   }
 };
 
-// TODO: work on this shiz
 export const config: FishyCommandConfig = {
   name: "fun",
   bot_needed: false,
