@@ -14,7 +14,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
   const action = interaction.args[0].name;
   if (!action || !interaction.args[0]) return;
   if (action === "mute") {
-    if(!interaction.member?.hasPermission("MANAGE_MESSAGES")) return interaction.sendSilent("oi, nice try mate")
+    if (!interaction.member?.hasPermission("MANAGE_MESSAGES"))
+      return interaction.sendSilent("oi, nice try mate");
     const toUnMuteRaw = Object.values(interaction.mentions?.users || {})[0];
     const toUnMute = await interaction.guild?.members.fetch(
       toUnMuteRaw?.id || ""
@@ -60,8 +61,11 @@ export const run: FishyCommandCode = async (client, interaction) => {
     if (!user_id) {
       return interaction.send(new ErrorEmbed("Please enter a user to un-ban"));
     }
+    if (typeof user_id !== "string")
+      return interaction.sendSilent("just stfu ok?");
     try {
-      if(!interaction.member?.hasPermission("BAN_MEMBERS")) return interaction.sendSilent("oi, nice try mate")
+      if (!interaction.member?.hasPermission("BAN_MEMBERS"))
+        return interaction.sendSilent("oi, nice try mate");
       let guild_member = await interaction.guild!.members.ban(user_id);
       let name = "";
       if (guild_member instanceof GuildMember) name = guild_member.user.tag;
@@ -73,12 +77,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       );
     } catch (err) {
       console.error(err);
-      interaction.send(
-        new ErrorEmbed(
-          "Could not un-ban that user",
-          `:(`
-        )
-      );
+      interaction.send(new ErrorEmbed("Could not un-ban that user", `:(`));
     }
   }
 };

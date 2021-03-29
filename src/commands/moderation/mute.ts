@@ -55,6 +55,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
   new_member.roles.add(muterole);
 
   const time = interaction.args.find((arg) => arg.name == "time")?.value;
+  if (typeof time !== "string")
+    return interaction.sendSilent("Im to tired for this");
   const miliseconds = time ? ms(time) : undefined;
   const reason =
     interaction.args.find((arg) => arg.name == "reason")?.value ||
@@ -68,7 +70,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
   );
   embed.setTitle(`Succesfully muted member ${new_member.displayName}`);
   embed.setFooter(`/un mute member: ${new_member.displayName}`);
-  interaction.send(embed)
+  interaction.send(embed);
   if (time && miliseconds && miliseconds > 10) {
     setTimeout(async () => {
       try {
@@ -84,7 +86,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
           await newer_member.roles.remove(muterole);
           interaction.channel.send(
             `${new_member} has been unmuted, after being muted for ${ms(
-              miliseconds
+              miliseconds || 0
             )} by ${interaction.member}`
           );
           // TODO: fix this
@@ -96,7 +98,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
             new ErrorEmbed(
               `Failed to unmute ${new_member.displayName}!`,
               `Failed to unmute the member: ${new_member}, after being muted for ${ms(
-                miliseconds
+                miliseconds || 0
               )}`
             )
           );

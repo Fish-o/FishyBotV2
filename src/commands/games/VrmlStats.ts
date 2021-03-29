@@ -1,6 +1,5 @@
 // TODO: Add a view for upcomming matches
 
-
 import Fuse from "fuse.js";
 import { Collection, MessageEmbed } from "discord.js";
 import {
@@ -66,7 +65,8 @@ export const run: FishyCommandCode = async function (client, interaction) {
     let emb = new ErrorEmbed("Please enter a vrml team name");
     return msg_sent ? interaction.edit(emb) : interaction.send(emb);
   }
-
+  if (typeof team_name !== "string")
+    return interaction.sendSilent(" topat > potat :D");
   if (
     !request_cache.has(url_all_teams) ||
     request_cache.get(url_all_teams)!.timestamp +
@@ -97,25 +97,25 @@ export const run: FishyCommandCode = async function (client, interaction) {
   })!;
   const name_fuse_options = {
     includeScore: true,
-    isCaseSensitive:false,
+    isCaseSensitive: false,
     keys: [
       {
         name: "name",
         weight: 1,
       },
     ],
-    distance:5,
+    distance: 5,
   };
   const player_fuse_options = {
     includeScore: true,
-    isCaseSensitive:false,
+    isCaseSensitive: false,
     keys: [
       {
         name: "players.name",
         weight: 1,
       },
     ],
-    distance:5,
+    distance: 5,
   };
   const name_fuse = new Fuse(filtered_all_teams, name_fuse_options);
   const name_fuse_result = name_fuse.search(team_name);
@@ -125,12 +125,12 @@ export const run: FishyCommandCode = async function (client, interaction) {
   if (
     !name_fuse_result ||
     !name_fuse_result[0]?.score ||
-    !(name_fuse_result[0]?.score < .2)
+    !(name_fuse_result[0]?.score < 0.2)
   ) {
     if (
       !player_fuse_result ||
       !player_fuse_result[0]?.score ||
-      !(player_fuse_result[0]?.score < .5)
+      !(player_fuse_result[0]?.score < 0.5)
     ) {
       if (
         !name_fuse_result ||
@@ -147,10 +147,10 @@ export const run: FishyCommandCode = async function (client, interaction) {
     } else {
       team_name = player_fuse_result[0].item.name;
     }
-  }else{
+  } else {
     team_name = name_fuse_result[0].item.name;
   }
-  
+
   // Getting team stats now
   let stats: vrlmTeamStats;
   let logos: Array<logoData>;
@@ -177,7 +177,11 @@ export const run: FishyCommandCode = async function (client, interaction) {
     };
   }
 
-  const description = `Games played: ${stats.gp}\nWins: ${stats.w}\nLosses: ${stats.l}\nPoints: ${stats.pts}\nMMR: ${stats.mmr || "No mrr yet"}\nRank: ${stats.rank}`;
+  const description = `Games played: ${stats.gp}\nWins: ${stats.w}\nLosses: ${
+    stats.l
+  }\nPoints: ${stats.pts}\nMMR: ${stats.mmr || "No mrr yet"}\nRank: ${
+    stats.rank
+  }`;
 
   // Create the embed
   const embed = new MessageEmbed();

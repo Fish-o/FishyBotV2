@@ -28,6 +28,7 @@ export const run: FishyCommandCode = async (Client, Interaction) => {
 
   let user_stats: IgnitePlayer | undefined | null = null;
   // Find in cache
+  if (typeof oculus_name !== "string") return Interaction.sendSilent("Buh");
   if (
     !cache.has(oculus_name) ||
     (cache.has(oculus_name) &&
@@ -100,7 +101,7 @@ export const run: FishyCommandCode = async (Client, Interaction) => {
             "total_stuns": 1617,
             "total_wins": 157  */
 
-  if(!user_stats){
+  if (!user_stats) {
     return;
   }
   let nicenes: number = Math.round(

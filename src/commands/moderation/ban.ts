@@ -12,6 +12,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
   if (!user_id) {
     return interaction.send(new ErrorEmbed("Please enter a user whom to ban"));
   }
+  if (typeof user_id !== "string")
+    return interaction.sendSilent("potat < topat :D");
   try {
     let guild_member = await interaction.guild!.members.ban(user_id);
     let name = "";
@@ -23,11 +25,16 @@ export const run: FishyCommandCode = async (client, interaction) => {
       new ErrorEmbed(`Succesfully banned user "${name}"`).setColor("GREEN")
     );
   } catch (err) {
-    console.error(err)
-    interaction.send(new ErrorEmbed("Could not ban that user",`A few things that could cause this:
+    console.error(err);
+    interaction.send(
+      new ErrorEmbed(
+        "Could not ban that user",
+        `A few things that could cause this:
 1) Does the user has a role higher then the FishyBot role?
 2) Does FishyBot have neither of the "ban members" or "administator" permissions?
-3) Is that person the server owner?`))
+3) Is that person the server owner?`
+      )
+    );
   }
 };
 

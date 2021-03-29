@@ -34,6 +34,9 @@ export const run: FishyCommandCode = async (client, interaction) => {
     }
     reason = reason || "No reason provided";
 
+    if (typeof memberId !== "string" || typeof reason !== "string")
+      return interaction.sendSilent("Just stop pls");
+
     const warn: warnObject = {
       timestamp: Date.now(),
       warner: interaction.member?.id!,
@@ -69,6 +72,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
         new ErrorEmbed("Please enter a name to view the warning from")
       );
     }
+    if (typeof memberId !== "string") return interaction.sendSilent("Buh");
     const db_guild = await interaction.getDbGuild();
     const user_warnins: Array<warnObject> = db_guild.warnings[memberId];
     const member = await interaction.guild?.members.fetch(memberId);
@@ -117,10 +121,11 @@ export const run: FishyCommandCode = async (client, interaction) => {
     embed.setTimestamp();
     interaction.send(embed);
   } else if (action === "remove") {
-    const memberId: String =
-      interaction.data.mentions?.members?.first()?.id ||
+    const memberId: String = `${
+      interaction.data.mentions?.users?.first()?.id ||
       interaction.data.options[0].options.find((arg) => arg.name === "member")
-        ?.value;
+        ?.value
+    }`;
     const id = interaction.data.options[0].options.find(
       (arg) => arg.name === "id"
     )?.value;

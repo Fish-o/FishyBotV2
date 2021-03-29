@@ -88,14 +88,14 @@ export const run: FishyCommandCode = async (client, interaction) => {
       }
     } else if (type === "dice") {
       const sides = Number.parseInt(
-        interaction.args[0]?.options?.[0].options?.find(
+        `${interaction.args[0]?.options?.[0].options?.find(
           (option) => option.name === "sides"
-        )?.value || "6"
+        )?.value}` || "6"
       );
       const diceces = Number.parseInt(
-        interaction.args[0]?.options?.[0].options?.find(
+        `${interaction.args[0]?.options?.[0].options?.find(
           (option) => option.name === "amount"
-        )?.value || "1"
+        )?.value}` || "1"
       );
       const embed = new MessageEmbed();
       embed.setColor("RANDOM");
