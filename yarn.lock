@@ -173,6 +173,11 @@
   "resolved" "https://registry.npmjs.org/fuse.js/-/fuse.js-6.4.6.tgz"
   "version" "6.4.6"
 
+"i@^0.3.6":
+  "integrity" "sha1-2WyScyB28HJxG2sQ/X1PZa2O4j0="
+  "resolved" "https://registry.npmjs.org/i/-/i-0.3.6.tgz"
+  "version" "0.3.6"
+
 "inherits@~2.0.3":
   "integrity" "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ=="
   "resolved" "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz"

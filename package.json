@@ -17,6 +17,7 @@
     "dotenv": "^8.2.0",
     "fishy-bot-framework": "^0.0.7",
     "fuse.js": "^6.4.6",
+    "i": "^0.3.6",
     "mongoose": "^5.12.2",
     "ms": "^2.1.3"
   },
