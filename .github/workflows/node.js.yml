@@ -1,0 +1,44 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+
+on:
+  push:
+    branches: [ master ]
+
+
+jobs:
+  deploy:
+
+    runs-on: raspi
+
+    strategy:
+      matrix:
+        node-version: [15.x]
+
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Create .env file
+      # You may pin to the exact commit or the version.
+      # uses: SpicyPizza/create-envfile@68bc962e171da964dea0d34ca817dd5f246a8f53
+      uses: SpicyPizza/create-envfile@v1.0
+      with:
+
+        envkey_TOKEN:  ${{ secrets.TOKEN }}
+        envkey_DB_URI:  ${{ secrets.DB_URI }}
+        envkey_IGNITE_KEY: ${{ secrets.IGNITE_KEY }}
+        envkey_CAT_API_KEY: ${{ secrets.CAT_API_KEY }}
+        envkey_DOG_API_KEY: ${{ secrets.DOG_API_KEY }}
+
+    - run: yarn install
+    - run: npm run build 
+    - run: pm2 restart FishyBotV2
+    
