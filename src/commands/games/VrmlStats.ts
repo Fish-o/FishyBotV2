@@ -10,6 +10,7 @@ import {
 } from "fishy-bot-framework/lib/types";
 import axios from "axios";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
+import cheerio from "cheerio";
 
 const request_cache: Collection<
   string,
@@ -54,13 +55,65 @@ function request(url: string, ttl?: number): Promise<any> {
   );
 }
 
+const base_team_url = `https://vrmasterleague.com/EchoArena/Teams/`;
+function scrap(
+  team_id: string,
+  team_name: string
+): Promise<Array<{ home: string; away: string; score: string }>> {
+  //: Promise<any>{
+  return new Promise(async (resolve, reject) => {
+    let res = await request(base_team_url + team_id);
+    let $ = cheerio.load(res);
+    const rows = $(".matches_team_row");
+    let matches: Array<{ home: string; away: string; score: string }> = [];
+    let done = rows.map((ind, ele) => {
+      //if ($(ele).find(".date_tbd")) return undefined;
+      //$(ele).find(".cast_cell")
+      const raw_score = $(ele).find(".score_cell").find("a").text();
+      if (!raw_score || raw_score == "" || !raw_score.includes("-")) return;
+      const home_team = $(ele).find(".home_team_cell");
+      const home_team_name = home_team.find(".team_name").text();
+      //home_team.find(".team_logo").attr("src");
+
+      const away_team = $(ele).find(".away_team_cell");
+      const away_team_name = away_team.find(".team_name").text();
+      //const away_team_logo = away_team.find(".team_logo").attr("src");
+      if (team_name == home_team_name) {
+        matches.push({
+          home: home_team_name,
+          away: away_team_name,
+          score: raw_score,
+        });
+      } else {
+        const new_score = raw_score.split(" - ").reverse().join(" - ");
+        matches.push({
+          home: away_team_name,
+          away: home_team_name,
+          score: new_score,
+        });
+      }
+
+      //const date = $(ele).find(".date_scheduled_info_conv");
+
+      //console.log(`${home_team_name} ${raw_score} ${away_team_name} `);
+      //$(ele).find(".match-page-info");
+
+      //if(el.attribs.class?.includes("") )
+    }); //date_scheduled_info_conv date_tbd
+    //vrml_table teams_recent_matches_tdate_scheduled_info_convable
+    resolve(matches);
+  });
+}
+
 const url_all_teams = `https://vrmasterleague.com/Services.asmx/GetTeamPlayersStats?game=echoarena&activeOnly=true&includeRetired=false`;
 const url_stats_team = `https://vrmasterleague.com/Services.asmx/GetTeamStats?game=echoarena&teamName=`;
 const logo_url = `https://vrmasterleague.com/Services.asmx/GetTeamLogo?game=echoarena&teamName=`;
 export const run: FishyCommandCode = async function (client, interaction) {
   let msg_sent = false;
-
   let team_name = interaction.args.find((arg) => arg.name === "name")?.value;
+  let matches = interaction.args.find((arg) => arg.name === "matches")?.value;
+  if (typeof matches !== "boolean" && typeof matches !== "undefined")
+    return interaction.sendSilent("Pain");
   if (!team_name) {
     let emb = new ErrorEmbed("Please enter a vrml team name");
     return msg_sent ? interaction.edit(emb) : interaction.send(emb);
@@ -71,7 +124,8 @@ export const run: FishyCommandCode = async function (client, interaction) {
     !request_cache.has(url_all_teams) ||
     request_cache.get(url_all_teams)!.timestamp +
       request_cache.get(url_all_teams)!.ttl <
-      Date.now()
+      Date.now() ||
+    matches
   ) {
     interaction.send("This can take a few seconds...");
     msg_sent = true;
@@ -85,6 +139,7 @@ export const run: FishyCommandCode = async function (client, interaction) {
   const filtered_all_teams = all_teams.map((team) => {
     let obj = {
       name: team.name,
+      id: team.id,
       players: team.players.map((player) => {
         let obj2 = {
           name: player.name,
@@ -150,14 +205,36 @@ export const run: FishyCommandCode = async function (client, interaction) {
   } else {
     team_name = name_fuse_result[0].item.name;
   }
+  if (typeof team_name !== "string")
+    return interaction.sendSilent(
+      "You cannot have the team not be a string, dm the bots owner if u think this is a mistake"
+    );
+  const all_teams_team = filtered_all_teams.find(
+    (team) => team.name == team_name
+  );
 
   // Getting team stats now
   let stats: vrlmTeamStats;
   let logos: Array<logoData>;
-  [stats, logos] = await Promise.all([
-    request(url_stats_team + team_name, 2 * 60 * 60 * 1000),
-    request(logo_url + team_name, 12 * 60 * 60 * 1000),
-  ]);
+  let scrapped:
+    | Array<{
+        home: string;
+        away: string;
+        score: string;
+      }>
+    | undefined;
+  if (matches) {
+    [scrapped, stats, logos] = await Promise.all([
+      scrap(all_teams_team!.id, all_teams_team!.name),
+      request(url_stats_team + team_name, 2 * 60 * 60 * 1000),
+      request(logo_url + team_name, 12 * 60 * 60 * 1000),
+    ]);
+  } else {
+    [stats, logos] = await Promise.all([
+      request(url_stats_team + team_name, 2 * 60 * 60 * 1000),
+      request(logo_url + team_name, 12 * 60 * 60 * 1000),
+    ]);
+  }
   if (!stats?.name) {
     let emb = new ErrorEmbed(
       "Something went wrong fetching the vrml stats",
@@ -210,8 +287,22 @@ export const run: FishyCommandCode = async function (client, interaction) {
       }
     });
   team_members = team_members.slice(0, -2);
-  embed.addFields({ name: "Team members", value: team_members, inline: false });
 
+  if (scrapped)
+    embed.addFields({
+      name: "Past matches",
+      value: scrapped.map((scrap) => {
+        if (scrap.score.split(" - ")[0] > scrap.score.split(" - ")[1]) {
+          scrap.home = `**${scrap.home}**`;
+        } else {
+          scrap.away = `**${scrap.away}**`;
+        }
+        return `${scrap.home} ${scrap.score} ${scrap.away}`;
+      }),
+      inline: true,
+    });
+
+  embed.addFields({ name: "Team members", value: team_members, inline: true });
   // This spaghetti monster makes the matches look nice
   /*if (team_matches !== []) {
     let match_text = "";
@@ -267,6 +358,11 @@ export const config: FishyCommandConfig = {
         type: ApplicationCommandOptionType.STRING,
         required: true,
       },
+      {
+        name: "matches",
+        description: "View the matches that team played",
+        type: ApplicationCommandOptionType.BOOLEAN,
+      },
     ],
   },
 };
@@ -277,6 +373,7 @@ export const help: FishyCommandHelp = {
 };
 
 /*
+https://vrmasterleague.com/Services.asmx/GetVODs?channelID / GetStreams
 http://vrmasterleague.com/Services.asmx/GetTeamPlayersStats?game=onward&activeOnly=false&includeRetired=false
 https://vrmasterleague.com/Services.asmx/GetTeamStats?game=onward&teamName=MAYHEM
 
