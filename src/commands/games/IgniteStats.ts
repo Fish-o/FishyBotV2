@@ -8,6 +8,7 @@ import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import axios from "axios";
 import { Collection, MessageEmbed } from "discord.js";
 import { totalmem } from "node:os";
+import { parseName } from "../../utils";
 
 const ttl = 1 * 60 * 60 * 1000;
 let cache: Collection<
@@ -123,7 +124,7 @@ export const run: FishyCommandCode = async (Client, Interaction) => {
       `https://ignitevr.gg/stats/player/${oculus_name}`
     )
     .setColor("#0055ff")
-    .setTitle(`IgniteVR stats for: ${oculus_name}`)
+    .setTitle(`IgniteVR stats for: ${parseName(oculus_name)}`)
     .setFooter(
       `Data is only collected from games when the \`ignitevr\` bot spectates a match`
     )

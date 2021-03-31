@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import cheerio from "cheerio";
+import { parseName } from "../../utils";
 
 const request_cache: Collection<
   string,
@@ -265,7 +266,7 @@ export const run: FishyCommandCode = async function (client, interaction) {
 
   // Set some static stuff for the embed
   embed.setColor("#0099ff");
-  embed.setTitle(stats.name);
+  embed.setTitle(parseName(stats.name));
   embed.setAuthor(stats.division, stats.divisionLogo);
 
   embed.setThumbnail(logos[0].Logo);
@@ -278,11 +279,11 @@ export const run: FishyCommandCode = async function (client, interaction) {
     .players.forEach((player) => {
       if (player.role == "Team Owner") {
         team_members = team_members.concat(
-          `${player.name}, ${player.country},  Owner \n`
+          `${parseName(player.name)}, ${player.country},  Owner \n`
         );
       } else {
         team_members = team_members.concat(
-          `${player.name}, ${player.country} \n`
+          `${parseName(player.name)}, ${player.country} \n`
         );
       }
     });
