@@ -114,6 +114,11 @@ const GuildConfigSchema = new Schema({
     type: Object,
     required: false,
   },
+  custom_slash_commands: {
+    type: Object,
+    required: false,
+    default: {},
+  },
   levels: {
     type: {
       members: {
