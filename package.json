@@ -17,7 +17,7 @@
     "cheerio": "^1.0.0-rc.5",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
-    "fishy-bot-framework": "^0.1.4",
+    "fishy-bot-framework": "^0.1.5",
     "fuse.js": "^6.4.6",
     "moment": "^2.29.1",
     "mongoose": "^5.12.2",
