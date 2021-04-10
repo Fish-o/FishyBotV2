@@ -8,7 +8,7 @@ import {
   ApplicationCommandOptionType,
   InteractionResponse,
   raw_interaction,
-  raw_recieved_interaction,
+  raw_received_interaction,
 } from "fishy-bot-framework/lib/types";
 
 function randomIntFromInterval(min: number, max: number) {
