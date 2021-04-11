@@ -11,12 +11,12 @@ import { mute_role_name } from "./mute";
 export const run: FishyCommandCode = async (client, interaction) => {
   if (!interaction.guild) return;
   console.log(interaction.raw_interaction);
-  const action = interaction.args[0].name;
-  if (!action || !interaction.args[0]) return;
+  const action = interaction.data.options[0]?.name;
+  if (!action) return;
   if (action === "mute") {
     if (!interaction.member?.hasPermission("MANAGE_MESSAGES"))
       return interaction.sendSilent("oi, nice try mate");
-    const toUnMuteRaw = Object.values(interaction.mentions?.users || {})[0];
+    const toUnMuteRaw = interaction.data.mentions?.users?.first();
     const toUnMute = await interaction.guild?.members.fetch(
       toUnMuteRaw?.id || ""
     );
@@ -55,9 +55,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
       );
     }
   } else if (action == "ban") {
-    const user_id = interaction.args[0].options!.find(
-      (arg) => arg.name == "user"
-    )?.value;
+    const user_id = interaction.data.options!.find((arg) => arg.name == "user")
+      ?.value;
     if (!user_id) {
       return interaction.send(new ErrorEmbed("Please enter a user to un-ban"));
     }

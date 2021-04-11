@@ -145,7 +145,7 @@ export const config: FishyCommandConfig = {
       {
         name: "after",
         description: "(advanced) Purge messages after a specific message id",
-        type: ApplicationCommandOptionType.INTEGER,
+        type: ApplicationCommandOptionType.STRING,
       },
       {
         name: "disablelimit",

@@ -13,8 +13,8 @@ let Client = new FishyBot.FishyClient({
 });
 Client.login();
 
-// TODO: ...Custom commands
+// Custom commands
 // TODO: Welcome screen
 // TODO: Roleperms
 
-// TODO: Database import
+// Database import

@@ -8,7 +8,8 @@ import {
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
 export const run: FishyCommandCode = async (client, interaction) => {
-  const user_id = interaction.args.find((arg) => arg.name == "user")?.value;
+  const user_id = interaction.data.options.find((arg) => arg.name == "user")
+    ?.value;
   if (!user_id) {
     return interaction.send(new ErrorEmbed("Please enter a user whom to ban"));
   }

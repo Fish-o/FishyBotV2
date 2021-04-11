@@ -33,8 +33,9 @@ export const run: FishyCommandCode = async (client, interaction) => {
   if (!Object.values(interaction.mentions?.members || {})[0]) {
     return interaction.send(new ErrorEmbed("Please enter a member to mute"));
   }
-  const member = Object.values(interaction.mentions?.members || {})[0];
-  const user = Object.values(interaction.mentions?.users || {})[0];
+  const member = interaction.data.mentions?.members?.first();
+  const user = interaction.data.mentions?.users?.first();
+  if (!member || !user) return interaction.sendSilent("No user to mute found");
   const member_perms = new Permissions(Number.parseInt(member.permissions!));
   if (member_perms.has("MANAGE_MESSAGES") || !user) {
     return interaction.send(new ErrorEmbed("Unable to mute this member"));

@@ -9,7 +9,8 @@ import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
 export const run: FishyCommandCode = async (client, interaction) => {
   console.log(interaction.raw_interaction);
-  const member_id = interaction.args.find((arg) => arg.name == "member")?.value;
+  const member_id = interaction.data.options.find((arg) => arg.name == "member")
+    ?.value;
   if (!member_id) {
     return interaction.send(
       new ErrorEmbed("Please enter a member whom to kick")

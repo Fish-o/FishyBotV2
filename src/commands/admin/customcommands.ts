@@ -173,31 +173,71 @@ export const run: FishyCommandCode = async (client, interaction) => {
     if (interaction.data.options[0]?.options?.[0]?.name === "command") {
       if (typeof interaction.data.options[0].options[0].value !== "string")
         return;
-      let command =
+      let command: custom_slash_commands =
         db_guild.custom_slash_commands[
           interaction.data.options[0].options[0].value.toLowerCase()
         ];
-      if (!command)
+      if (!command || !command.name)
         return interaction.sendSilent(
-          `The interaction ${interaction.data.options[0].options[0].value.toLowerCase()} doesn't exist`
+          `The interaction "${interaction.data.options[0].options[0].value.toLowerCase()}" doesn't exist`
         );
-      //TODO: this needs more info
-      let embed = new MessageEmbed().setTitle(
-        "Slash command: " +
-          interaction.data.options[0].options[0].value.toLowerCase()
-      );
+      function convertTypeString(raw: ApplicationCommandOptionType): string {
+        let type = "none?!";
+        if (raw == ApplicationCommandOptionType.STRING) {
+          type = "str";
+        } else if (raw == ApplicationCommandOptionType.INTEGER) {
+          type = "int";
+        } else if (raw == ApplicationCommandOptionType.USER) {
+          type = "member";
+        }
+
+        return type;
+      }
+
+      let embed = new MessageEmbed().setTitle("Slash command: " + command.name);
+      embed.setDescription(`**Options:**
+      ${
+        command.options
+          ?.map(
+            (opt) =>
+              `\`${convertTypeString(opt.type)}_${opt.name}\`: \`${
+                opt.description
+              }\` `
+          )
+          .join("\n") || "None"
+      }
+      
+      **Response Code:**
+      \`${command.code}\``);
       return interaction.send(embed);
+    } else {
+      let out = new MessageEmbed()
+        .setTitle("Custom slash commands for this server")
+        .setColor("RANDOM")
+        .setTimestamp();
+      Object.values(custom_slash_commands).forEach((command) => {
+        out.addField(command.name, command.description, true);
+      });
+      interaction.send(out);
     }
-    let out = new MessageEmbed()
-      .setTitle("Custom slash commands for this server")
-      .setColor("RANDOM")
-      .setTimestamp();
-    Object.values(custom_slash_commands).forEach((command) => {
-      out.addField(command.name, command.description, true);
+  } else if (action === "delete") {
+    const command = interaction.data.options[0].options[0]?.value;
+    if (!command || typeof command !== "string")
+      return interaction.sendSilent("OI, enter a command");
+    const db_guild = await interaction.getDbGuild();
+    const cc: custom_slash_commands =
+      db_guild.custom_slash_commands[command.toLowerCase()];
+    if (!cc || !cc.name)
+      return interaction.sendSilent("That command doesn't exists");
+
+    await interaction.updateDbGuild({
+      $unset: { ["custom_slash_commands." + cc.name]: "" },
     });
-    interaction.send(out);
+    interaction.send(`Removed the custom slash command "${cc.name}"!`);
+
+    //
   }
-  // TODO: remove and edit
+  // TODO: edit?
 };
 
 export const config: FishyCommandConfig = {
@@ -300,6 +340,19 @@ export const config: FishyCommandConfig = {
         name: "reload",
         description: "Reload all custom slash commands",
         type: ApplicationCommandOptionType.SUB_COMMAND,
+      },
+      {
+        name: "delete",
+        description: "Delete a custom command",
+        type: ApplicationCommandOptionType.SUB_COMMAND,
+        options: [
+          {
+            name: "command",
+            description: "The command to remove",
+            type: ApplicationCommandOptionType.STRING,
+            required: true,
+          },
+        ],
       },
     ],
   },

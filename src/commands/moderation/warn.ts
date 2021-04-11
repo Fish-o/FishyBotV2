@@ -16,17 +16,17 @@ export interface warnObject {
 
 export const run: FishyCommandCode = async (client, interaction) => {
   console.log(interaction.raw_interaction);
-  if (!interaction.args[0]?.options)
+  if (!interaction.data.options[0]?.options)
     return interaction.sendSilent("Stop breaking shit >:(");
-  const action = interaction.args[0]?.name;
+  const action = interaction.data.options[0]?.name;
   if (!action || !["add", "list", "remove"].includes(action))
     return interaction.sendSilent("Stop breaking shit >:(");
 
   if (action === "add") {
-    const memberId = interaction.args[0].options.find(
+    const memberId = interaction.data.options[0].options.find(
       (arg) => arg.name === "member"
     )?.value;
-    let reason = interaction.args[0].options.find(
+    let reason = interaction.data.options[0].options.find(
       (arg) => arg.name === "reason"
     )?.value;
     if (!memberId) {
@@ -64,7 +64,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
     embed.setThumbnail(bad_pfp || "");
     interaction.send(embed);
   } else if (action === "list") {
-    const memberId = interaction.args[0].options.find(
+    const memberId = interaction.data.options[0].options.find(
       (arg) => arg.name === "member"
     )?.value;
     if (!memberId) {
