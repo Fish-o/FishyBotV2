@@ -1,7 +1,7 @@
 import { ClientEvents, Collection, Message } from "discord.js";
 import { FishyClient } from "fishy-bot-framework";
 import fs from "fs";
-import path from "node:path";
+import path from "path";
 const commands = new Collection<string, Function>();
 
 fs.readdir(path.join(process.cwd(), "../debug/"), (direrr, files) => {
