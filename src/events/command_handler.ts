@@ -1,22 +1,23 @@
 import { ClientEvents, Collection, Message } from "discord.js";
 import { FishyClient } from "fishy-bot-framework";
 import fs from "fs";
+import path from "node:path";
 const commands = new Collection<string, Function>();
 
-fs.readdir("../debug/", (direrr, files) => {
+fs.readdir(path.join(process.cwd(), "../debug/"), (direrr, files) => {
   if (direrr) {
     return console.log("Unable to scan directory: " + direrr);
   }
   console.log(files);
   files.forEach((file) => {
-    const path = "../debug/" + file + "/";
+    const file_path = path.join(process.cwd(), "../debug/", file);
 
     // Go thru all files in the subdir
     files.forEach((file) => {
       // Check if they end with .js
       if (!file.endsWith(".js")) return;
       // Load the command file
-      let command_file = require(path);
+      let command_file = require(file_path);
 
       // Set the command file with the file path
       console.log(`Loading Command: ${command_file.name}`);
