@@ -4,13 +4,13 @@ import fs from "fs";
 import path from "path";
 const commands = new Collection<string, Function>();
 
-fs.readdir(path.join(__dirname, "/lib/debug/"), (direrr, files) => {
+fs.readdir(path.join(__dirname, "/../debug/"), (direrr, files) => {
   if (direrr) {
     return console.log("Unable to scan directory: " + direrr);
   }
   console.log(files);
   files.forEach((file) => {
-    const file_path = path.join(__dirname, "/lib/debug/", file);
+    const file_path = path.join(__dirname, "/../debug/", file);
 
     // Go thru all files in the subdir
     files.forEach((file) => {
