@@ -3,12 +3,12 @@ import {
   FishyCommandCode,
   FishyCommandConfig,
   FishyCommandHelp,
-} from "fishy-bot-framework/lib/types";
-import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
-import axios from "axios";
-import { Collection, MessageEmbed } from "discord.js";
-import { totalmem } from "node:os";
-import { parseName } from "../../utils";
+} from 'fishy-bot-framework/lib/types';
+import { ErrorEmbed } from 'fishy-bot-framework/lib/utils/Embeds';
+import axios from 'axios';
+import { Collection, MessageEmbed } from 'discord.js';
+import { totalmem } from 'node:os';
+import { parseName } from '../../utils';
 
 const ttl = 1 * 60 * 60 * 1000;
 let cache: Collection<
@@ -18,18 +18,18 @@ let cache: Collection<
 
 // @ts-ignore
 export const run: FishyCommandCode = async (Client, Interaction) => {
-  let oculus_name = Interaction.args.find((arg) => arg.name == "name")?.value;
+  let oculus_name = Interaction.args.find((arg) => arg.name == 'name')?.value;
   console.log(Interaction.args);
   console.log(oculus_name);
   if (!oculus_name) {
-    let err = new ErrorEmbed("Please enter a name");
+    let err = new ErrorEmbed('Please enter a name');
     Interaction.send(err);
     return;
   }
 
   let user_stats: IgnitePlayer | undefined | null = null;
   // Find in cache
-  if (typeof oculus_name !== "string") return Interaction.sendSilent("Buh");
+  if (typeof oculus_name !== 'string') return Interaction.sendSilent('Buh');
   if (
     !cache.has(oculus_name) ||
     (cache.has(oculus_name) &&
@@ -38,14 +38,14 @@ export const run: FishyCommandCode = async (Client, Interaction) => {
     const endpoint = `https://ignitevr.gg/cgi-bin/EchoStats.cgi/get_player_stats?player_name=${oculus_name}&fuzzy_search=true`;
     let res = await axios.get(endpoint, {
       headers: {
-        "x-api-key": process.env.IGNITE_KEY,
-        useragent: "FishyBot V2",
+        'x-api-key': process.env.IGNITE_KEY,
+        useragent: 'FishyBot V2',
       },
     });
     if (!res?.data)
       return Interaction.send(
         new ErrorEmbed(
-          "Something has gone wrong",
+          'Something has gone wrong',
           `The ignite api didnt respond with any data\nResponse code: ${res.status}`
         )
       );
@@ -54,7 +54,7 @@ export const run: FishyCommandCode = async (Client, Interaction) => {
     if (!ignite_data.player?.[0])
       return Interaction.send(
         new ErrorEmbed(
-          "No player found",
+          'No player found',
           `The ignite api couldnt find any players with the name: \`${oculus_name}\``
         )
       );
@@ -119,41 +119,41 @@ export const run: FishyCommandCode = async (Client, Interaction) => {
 
   let embed = new MessageEmbed()
     .setAuthor(
-      "Powered by IgniteVR Metrics",
-      "https://ignitevr.gg/wp-content/uploads/2019/09/primary_Optimized.png",
+      'Powered by IgniteVR Metrics',
+      'https://ignitevr.gg/wp-content/uploads/2019/09/primary_Optimized.png',
       `https://ignitevr.gg/stats/player/${oculus_name}`
     )
-    .setColor("#0055ff")
+    .setColor('#0055ff')
     .setTitle(`IgniteVR stats for: ${parseName(oculus_name)}`)
     .setFooter(
       `Data is only collected from games when the \`ignitevr\` bot spectates a match`
     )
     .addFields(
-      { name: "Games on record", value: user_stats.game_count, inline: true },
-      { name: "Level", value: user_stats.level, inline: true },
+      { name: 'Games on record', value: user_stats.game_count, inline: true },
+      { name: 'Level', value: user_stats.level, inline: true },
       {
-        name: "Win Ratio",
+        name: 'Win Ratio',
         value: `${Math.round(
           (user_stats.total_wins / user_stats.game_count) * 100
         )}%`,
         inline: true,
       },
       {
-        name: "Goals Avg",
+        name: 'Goals Avg',
         value:
           Math.round((user_stats.total_goals / user_stats.game_count) * 100) /
           100,
         inline: true,
       },
       {
-        name: "Hit Ratio",
+        name: 'Hit Ratio',
         value: `${Math.round(
           (user_stats.total_goals / user_stats.total_shots_taken) * 100
         )}%`,
         inline: true,
       },
       {
-        name: "3 Pointer Ratio",
+        name: '3 Pointer Ratio',
         value: `${Math.round(
           (user_stats.total_3_pointers / user_stats.total_2_pointers) * 100
         )}%`,
@@ -161,42 +161,42 @@ export const run: FishyCommandCode = async (Client, Interaction) => {
       },
 
       {
-        name: "Assists Avg",
+        name: 'Assists Avg',
         value:
           Math.round((user_stats.total_assists / user_stats.game_count) * 100) /
           100,
         inline: true,
       },
       {
-        name: "Saves Avg",
+        name: 'Saves Avg',
         value:
           Math.round((user_stats.total_saves / user_stats.game_count) * 100) /
           100,
         inline: true,
       },
       {
-        name: "Stuns Avg",
+        name: 'Stuns Avg',
         value:
           Math.round((user_stats.total_stuns / user_stats.game_count) * 100) /
           100,
         inline: true,
       },
 
-      { name: "Niceness™", value: `Score: ${nicenes}` }
+      { name: "FishyBot's Niceness Generator™", value: `Score: ${nicenes}` }
     );
   Interaction.send(embed);
 };
 
 export const config: FishyCommandConfig = {
-  name: "echostats",
+  name: 'echostats',
   bot_needed: false,
   interaction_options: {
-    name: "echostats",
-    description: "Returns the echo ignite stats of a specific user",
+    name: 'echostats',
+    description: 'Returns the echo ignite stats of a specific user',
     options: [
       {
-        name: "name",
-        description: "The user of who to find the stats for",
+        name: 'name',
+        description: 'The user of who to find the stats for',
         type: ApplicationCommandOptionType.STRING,
         required: true,
       },
@@ -205,7 +205,7 @@ export const config: FishyCommandConfig = {
 };
 
 export const help: FishyCommandHelp = {
-  usage: "/echostats name: OculusNameHere",
+  usage: '/echostats name: OculusNameHere',
   description: config.interaction_options.description,
 };
 
