@@ -35,6 +35,7 @@ Feature:
 \`\`\`
 ${text}
 \`\`\``);
+    interaction.sendSilent('Sent the feature request!');
   } else if (action === 'bug') {
     const text = interaction.data.options[0].options.find(
       (opt) => opt.name === 'text'
@@ -59,6 +60,7 @@ Bug:
 \`\`\`
 ${text}
 \`\`\``);
+    interaction.sendSilent('Sent the bug report!');
   } else if (action === 'other') {
     const text = interaction.data.options[0].options.find(
       (opt) => opt.name === 'text'
@@ -83,6 +85,7 @@ Text:
 \`\`\`
 ${text}
 \`\`\``);
+    interaction.sendSilent('Sent the message!');
   }
 };
 
