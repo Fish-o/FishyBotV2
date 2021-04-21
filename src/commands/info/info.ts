@@ -1,116 +1,118 @@
-import { Guild, MessageEmbed, Permissions, Role } from "discord.js";
+import { Guild, MessageEmbed, Permissions, Role } from 'discord.js';
 import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
   FishyCommandHelp,
   role_object,
-} from "fishy-bot-framework/lib/types";
-import moment from "moment";
-import Discord from "discord.js";
-import QuickChart from "quickchart-js";
-import ms from "ms";
-const package_json = require("./../../../package.json");
+} from 'fishy-bot-framework/lib/types';
+import moment from 'moment';
+import Discord from 'discord.js';
+import QuickChart from 'quickchart-js';
+import ms from 'ms';
+const package_json = require('./../../../package.json');
 
+const max_graph_item = 400;
 export const run: FishyCommandCode = async (client, interaction) => {
   const action = interaction.data.options[0]?.name;
 
-  if (action === "member") {
+  if (action === 'member') {
     if (!interaction.data.mentions?.users?.first())
-      return interaction.sendSilent("You broke something >:(");
-    if (!interaction.guild) return interaction.sendSilent("u smell");
+      return interaction.sendSilent('You broke something >:(');
+    if (!interaction.guild) return interaction.sendSilent('u smell');
     let user = interaction.data.mentions.users.first();
-    let member = interaction.guild.members.cache.get(user?.id || "");
+    let member = interaction.guild.members.cache.get(user?.id || '');
     if (!member)
       return interaction.sendSilent(
         "Couldn't find that member, did you maybe break something?!"
       );
-    let notes = "";
+    let notes = '';
     let permissions: Array<string> = [];
     {
-      if (member.hasPermission("KICK_MEMBERS")) {
-        permissions.push("Kick Members");
+      if (member.hasPermission('KICK_MEMBERS')) {
+        permissions.push('Kick Members');
       }
 
-      if (member.hasPermission("BAN_MEMBERS")) {
-        permissions.push("Ban Members");
+      if (member.hasPermission('BAN_MEMBERS')) {
+        permissions.push('Ban Members');
       }
 
-      if (member.hasPermission("MANAGE_MESSAGES")) {
-        permissions.push("Manage Messages");
+      if (member.hasPermission('MANAGE_MESSAGES')) {
+        permissions.push('Manage Messages');
       }
 
-      if (member.hasPermission("MANAGE_CHANNELS")) {
-        permissions.push("Manage Channels");
+      if (member.hasPermission('MANAGE_CHANNELS')) {
+        permissions.push('Manage Channels');
       }
 
-      if (member.hasPermission("MENTION_EVERYONE")) {
-        permissions.push("Mention Everyone");
+      if (member.hasPermission('MENTION_EVERYONE')) {
+        permissions.push('Mention Everyone');
         notes += `Can mention @everyone\n`;
       }
 
-      if (member.hasPermission("MANAGE_NICKNAMES")) {
-        permissions.push("Manage Nicknames");
+      if (member.hasPermission('MANAGE_NICKNAMES')) {
+        permissions.push('Manage Nicknames');
       }
 
-      if (member.hasPermission("MANAGE_ROLES")) {
-        permissions.push("Manage Roles");
+      if (member.hasPermission('MANAGE_ROLES')) {
+        permissions.push('Manage Roles');
       }
 
-      if (member.hasPermission("MANAGE_WEBHOOKS")) {
-        permissions.push("Manage Webhooks");
+      if (member.hasPermission('MANAGE_WEBHOOKS')) {
+        permissions.push('Manage Webhooks');
       }
 
-      if (member.hasPermission("MANAGE_EMOJIS")) {
-        permissions.push("Manage Emojis");
+      if (member.hasPermission('MANAGE_EMOJIS')) {
+        permissions.push('Manage Emojis');
       }
 
-      if (member.hasPermission("ADMINISTRATOR")) {
-        permissions = ["Administrator (everything)"];
+      if (member.hasPermission('ADMINISTRATOR')) {
+        permissions = ['Administrator (everything)'];
         notes += `Has administrator permissions\n`;
       }
 
       if (permissions.length == 0) {
-        permissions.push("No Key Permissions Found");
+        permissions.push('No Key Permissions Found');
       }
     }
     if (member.user.id == interaction.guild.ownerID) {
-      notes += "The Server Owner\n";
+      notes += 'The Server Owner\n';
     }
 
     const embed = new MessageEmbed();
     embed.setTitle(`${member.user.tag} - Information`);
     embed.setDescription(`<@${member.user.id}>`);
-    embed.setColor("RANDOM");
+    embed.setColor('RANDOM');
     embed.setFooter(`ID: ${member.id}`);
     embed.setThumbnail(member.user.displayAvatarURL());
     embed.addField(
-      "Joined at: ",
-      `${moment(member.joinedAt).format("dddd, MMMM Do YYYY, HH:mm:ss")}`,
+      'Joined at: ',
+      `${moment(member.joinedAt).format('dddd, MMMM Do YYYY, HH:mm:ss')}`,
       true
     );
     embed.setFooter(`${member.id} created at:`);
     embed.setTimestamp(member.user.createdAt);
-    embed.addField("Permissions: ", `${permissions.join(", ")}`, true);
+    embed.addField('Permissions: ', `${permissions.join(', ')}`, true);
     embed.addField(
       `Roles`,
       `${
         member.roles.cache
           .filter((r) => r.id !== interaction.guild!.id)
           .map((roles) => `<@&${roles.id}>`)
-          .join(" **|** ") || "No Roles"
+          .join(' **|** ') || 'No Roles'
       }`,
       true
     );
-    embed.addField(`Notes`, notes || "I have nothing to note", true);
+    embed.addField(`Notes`, notes || 'I have nothing to note', true);
     interaction.send(embed);
     //.addField("Acknowledgements: ", `${warnings}`, true);
-  } else if (action === "server") {
-    console.time("Func");
-    if (!interaction.guild) return interaction.send(">:()()()()()()()()()(:");
+  } else if (action === 'server') {
+    console.time('Func');
+    if (!interaction.guild) return interaction.send('>:()()()()()()()()()(:');
     try {
       let join_dates: Array<number> = [];
-      const members = await interaction.guild.members.fetch();
+      const guild = interaction.guild; // await client.guilds.fetch('745332109706657972');
+      const members = await guild.members.fetch();
       function checkBots() {
         let botCount = 0;
         members.forEach((member) => {
@@ -132,7 +134,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       function checkOnlineUsers() {
         let onlineCount = 0;
         members.forEach((member) => {
-          if (member.user.presence.status === "online") onlineCount++;
+          if (member.user.presence.status === 'online') onlineCount++;
         });
         return onlineCount;
       }
@@ -141,8 +143,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
         if (!member.user.bot) {
           join_dates.push(
             moment(
-              moment.utc(member.joinedAt).format("DD/MM/YYYY"),
-              "DD-MM-YYYY"
+              moment.utc(member.joinedAt).format('DD/MM/YYYY'),
+              'DD-MM-YYYY'
             ).unix()
           );
         }
@@ -159,34 +161,58 @@ export const run: FishyCommandCode = async (client, interaction) => {
           data[join_date] = data[last_date] + 1;
 
           //convert the unix time of the last to dd/mm/yyyy
-          nice_data[moment.utc(last_date * 1000).format("YYYY/MM/DD")] =
+          nice_data[moment.utc(last_date * 1000).format('YYYY/MM/DD')] =
             data[last_date];
         }
         last_date = join_date;
       });
 
-      let nice_array = [];
-      Object.keys(nice_data).forEach((date) => {
-        nice_array.push({ users: nice_data[date], date: date });
-      });
+      let nice_array: Array<{
+        users: number;
+        date: string;
+        distance: number;
+      }> = [];
+      let proximitys: Array<number> = [];
+      Object.keys(nice_data).forEach((date, index, array) => {
+        let distance = -1;
+        if (index !== 0 && index !== array.length - 1) {
+          const location = Math.round(new Date(date).valueOf() / 1000);
+          const distance_before =
+            location - Math.round(new Date(array[index - 1]).valueOf() / 1000);
 
-      console.log(nice_data);
-      console.log(Object.keys(nice_data));
-      console.log(Object.values(nice_data));
+          const distance_after =
+            Math.round(new Date(array[index + 1]).valueOf() / 1000) - location;
+          distance = (distance_before ^ 2) + (distance_after ^ 2);
+          proximitys.push(distance);
+        }
+
+        nice_array.push({
+          users: nice_data[date],
+          date: date,
+          distance: distance,
+        });
+      });
+      if (max_graph_item - nice_array.length < 0) {
+        proximitys = proximitys.sort((a, b) => a - b);
+        let toRemove = proximitys.slice(0, nice_array.length - max_graph_item);
+        nice_array = nice_array.filter(
+          (obj) => !toRemove.includes(obj.distance)
+        );
+      }
 
       //var canvas = createCanvas(600,400)//600, 400)
       //var ctx = canvas.getContext('2d')
       //console.log(JSON.stringify(ctx))
       const mychartOptions = {
-        type: "line",
+        type: 'line',
 
         data: {
-          labels: Object.keys(nice_data),
+          labels: nice_array.map((obj) => obj.date),
           datasets: [
             {
-              label: "Members over time",
+              label: 'Members over time',
               //color: 'rgba(255, 255, 255, 1)',
-              data: Object.values(nice_data),
+              data: nice_array.map((obj) => obj.users),
               fill: true,
             },
           ],
@@ -194,22 +220,22 @@ export const run: FishyCommandCode = async (client, interaction) => {
         options: {
           legend: {
             labels: {
-              fontColor: "White",
+              fontColor: 'White',
             },
           },
           scales: {
             xAxes: [
               {
-                type: "time",
+                type: 'time',
                 ticks: {
-                  fontColor: "white",
+                  fontColor: 'white',
                 },
               },
             ],
             yAxes: [
               {
                 ticks: {
-                  fontColor: "white",
+                  fontColor: 'white',
                 },
               },
             ],
@@ -219,29 +245,29 @@ export const run: FishyCommandCode = async (client, interaction) => {
       const chart = new QuickChart();
       chart
         .setConfig(mychartOptions)
-        .setBackgroundColor("transparent")
+        .setBackgroundColor('transparent')
         .setWidth(500)
         .setHeight(300)
         .setDevicePixelRatio(10);
 
-      let sicon = interaction.guild.iconURL() || "";
+      let sicon = interaction.guild.iconURL() || '';
       let serverembed = new Discord.MessageEmbed()
         .setTitle(`${interaction.guild.name} - Information`)
-        .setColor("RANDOM")
-        .addField("Server owner", interaction.guild.owner, true)
-        .addField("Server region", interaction.guild.region, true)
+        .setColor('RANDOM')
+        .addField('Server owner', interaction.guild.owner, true)
+        .addField('Server region', interaction.guild.region, true)
         .setThumbnail(sicon)
-        .addField("Server Name", interaction.guild.name)
+        .addField('Server Name', interaction.guild.name)
         .addField(
-          "Verification level",
+          'Verification level',
           interaction.guild.verificationLevel,
           true
         )
-        .addField("Channel count", interaction.guild.channels.cache.size, true)
-        .addField("Total member count", interaction.guild.memberCount)
-        .addField("Humans", checkMembers(), true)
-        .addField("Bots", checkBots(), true)
-        .addField("Online", checkOnlineUsers())
+        .addField('Channel count', interaction.guild.channels.cache.size, true)
+        .addField('Total member count', interaction.guild.memberCount)
+        .addField('Humans', checkMembers(), true)
+        .addField('Bots', checkBots(), true)
+        .addField('Online', checkOnlineUsers())
 
         .setFooter(`${interaction.guild.id} created at:`)
         .setTimestamp(interaction.guild.createdAt)
@@ -249,21 +275,21 @@ export const run: FishyCommandCode = async (client, interaction) => {
       /*    if(IMAGE){
           serverembed.setImage(IAMGE)
       }*/
-      console.timeEnd("Func");
+      console.timeEnd('Func');
       return interaction.send(serverembed);
     } catch (err) {
       //Sentry.captureException(err);
-      console.error("An erro has occured with the serverinfo command");
+      console.error('An error has occurred with the serverinfo command');
       console.error(err);
 
-      return interaction.sendSilent("Something has gone wrong!");
+      return interaction.sendSilent('Something has gone wrong!');
     }
-  } else if (action === "bot") {
+  } else if (action === 'bot') {
     const guild_size = client.guilds.cache.size;
     const channel_size = client.channels.cache.size;
     const users_size = client.users.cache.size;
     let serverembed = new Discord.MessageEmbed()
-      .setColor("#9400D3")
+      .setColor('#9400D3')
       .setAuthor(client.fishy_options.author, client.user!.displayAvatarURL())
       .addField(`Version`, package_json?.version, true)
       //.addField(`Library`,`Discord.js` , true)
@@ -279,16 +305,16 @@ export const run: FishyCommandCode = async (client, interaction) => {
       .setFooter(`Online since`)
       .setTimestamp(Date.now() - (client.uptime || 0));
     return interaction.send(serverembed);
-  } else if (action === "role") {
+  } else if (action === 'role') {
     let value_role = interaction.data.mentions?.roles?.first();
     if (!value_role) {
-      if (!interaction.member?.hasPermission("MANAGE_ROLES"))
-        return interaction.sendSilent("You arent allowed to run this command");
+      if (!interaction.member?.hasPermission('MANAGE_ROLES'))
+        return interaction.sendSilent('You arent allowed to run this command');
       const guild_roles_manager = interaction.guild?.roles;
       if (!guild_roles_manager)
-        return interaction.sendSilent("Couldnt fetch this servers roles");
+        return interaction.sendSilent('Couldnt fetch this servers roles');
 
-      function compare(a:Role, b:Role) {
+      function compare(a: Role, b: Role) {
         if (a.position > b.position) {
           return -1;
         } else if (a.position < b.position) {
@@ -297,32 +323,32 @@ export const run: FishyCommandCode = async (client, interaction) => {
           return 0;
         }
       }
-      let text = "";
+      let text = '';
       const guild_roles = (await guild_roles_manager.fetch()).cache.array();
       guild_roles.sort(compare).forEach((role) => {
         let append = `${role.toString()} `;
         if (
-          role.permissions.has("MENTION_EVERYONE") &&
-          !role.permissions.has("ADMINISTRATOR") &&
-          !role.permissions.has("MANAGE_MESSAGES") &&
-          !role.permissions.has("MANAGE_CHANNELS")
+          role.permissions.has('MENTION_EVERYONE') &&
+          !role.permissions.has('ADMINISTRATOR') &&
+          !role.permissions.has('MANAGE_MESSAGES') &&
+          !role.permissions.has('MANAGE_CHANNELS')
         ) {
           append += `- ⚠️ Can Mention Everyone`;
         }
-        text += append + "\n";
+        text += append + '\n';
       });
       const Embed = new Discord.MessageEmbed()
         .setTitle(`Roles for ${interaction.guild!.name}`)
-        .setColor("RANDOM")
+        .setColor('RANDOM')
         .setDescription(text);
       return interaction.send(Embed);
     } else {
       const Embed = new Discord.MessageEmbed()
         .setTitle(`Role: ${value_role.name}`)
-        .setColor("RANDOM");
+        .setColor('RANDOM');
       if (
         new Permissions(Number.parseInt(value_role.permissions)).has(
-          "ADMINISTRATOR"
+          'ADMINISTRATOR'
         )
       ) {
         Embed.setDescription(`ADMINISTRATOR (everything)`);
@@ -330,7 +356,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
         Embed.setDescription(
           `${new Permissions(Number.parseInt(value_role.permissions))
             .toArray()
-            .join("\n")}`
+            .join('\n')}`
         );
       }
       return interaction.send(Embed);
@@ -339,32 +365,32 @@ export const run: FishyCommandCode = async (client, interaction) => {
 };
 
 export const help: FishyCommandHelp = {
-  description: "Get info about members, the server, the bot or roles!",
-  usage: "/info [member/server/role/channel]",
+  description: 'Get info about members, the server, the bot or roles!',
+  usage: '/info [member/server/role/channel]',
 };
 export const config: FishyCommandConfig = {
-  name: "info",
+  name: 'info',
   bot_needed: true,
   interaction_options: {
-    name: "info",
+    name: 'info',
     description: help.description,
     options: [
       {
-        name: "member",
-        description: "Get info about a specific member",
+        name: 'member',
+        description: 'Get info about a specific member',
         type: ApplicationCommandOptionType.SUB_COMMAND,
         options: [
           {
-            name: "value",
-            description: "The member to get info about",
+            name: 'value',
+            description: 'The member to get info about',
             type: ApplicationCommandOptionType.USER,
             required: true,
           },
         ],
       },
       {
-        name: "server",
-        description: "Get info about the server",
+        name: 'server',
+        description: 'Get info about the server',
         type: ApplicationCommandOptionType.SUB_COMMAND,
       },
       /*{
@@ -381,18 +407,18 @@ export const config: FishyCommandConfig = {
         ],
       },*/
       {
-        name: "bot",
-        description: "Get info about the bot",
+        name: 'bot',
+        description: 'Get info about the bot',
         type: ApplicationCommandOptionType.SUB_COMMAND,
       },
       {
-        name: "role",
-        description: "Get info about a specific role, or all of them",
+        name: 'role',
+        description: 'Get info about a specific role, or all of them',
         type: ApplicationCommandOptionType.SUB_COMMAND,
         options: [
           {
-            name: "value",
-            description: "The role to get info about",
+            name: 'value',
+            description: 'The role to get info about',
             type: ApplicationCommandOptionType.ROLE,
           },
         ],
