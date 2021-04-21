@@ -12,7 +12,7 @@ import QuickChart from 'quickchart-js';
 import ms from 'ms';
 const package_json = require('./../../../package.json');
 
-const max_graph_item = 400;
+const max_graph_item = 300;
 export const run: FishyCommandCode = async (client, interaction) => {
   const action = interaction.data.options[0]?.name;
 
