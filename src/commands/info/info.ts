@@ -12,7 +12,7 @@ import QuickChart from 'quickchart-js';
 import ms from 'ms';
 const package_json = require('./../../../package.json');
 
-const max_graph_item = 200;
+const max_graph_item = 400;
 export const run: FishyCommandCode = async (client, interaction) => {
   const action = interaction.data.options[0]?.name;
 
@@ -249,7 +249,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
         .setWidth(500)
         .setHeight(300)
         .setDevicePixelRatio(10);
-
+      console.log(chart.getUrl().length);
+      const url = await chart.getShortUrl();
       let sicon = interaction.guild.iconURL() || '';
       let serverembed = new Discord.MessageEmbed()
         .setTitle(`${interaction.guild.name} - Information`)
@@ -271,7 +272,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
 
         .setFooter(`${interaction.guild.id} created at:`)
         .setTimestamp(interaction.guild.createdAt)
-        .setImage(chart.getUrl());
+        .setImage(url);
       /*    if(IMAGE){
           serverembed.setImage(IAMGE)
       }*/
