@@ -1,5 +1,5 @@
 //const Ssentry = require("@sentry/node");
-
+/*
 import { Message, Role } from "discord.js";
 import { FishyClient } from "fishy-bot-framework";
 
@@ -61,3 +61,4 @@ exports.run = async (client: FishyClient, message: Message, args: string[]) => {
 };
 
 exports.name = "removerole";
+*/
