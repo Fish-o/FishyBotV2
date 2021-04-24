@@ -227,13 +227,13 @@ export const run: FishyCommandCode = async function (client, interaction) {
   if (matches) {
     [scrapped, stats, logos] = await Promise.all([
       scrap(all_teams_team!.id, all_teams_team!.name),
-      request(url_stats_team + team_name, 2 * 60 * 60 * 1000),
-      request(logo_url + team_name, 12 * 60 * 60 * 1000),
+      request(url_stats_team + escape(team_name), 2 * 60 * 60 * 1000),
+      request(logo_url + escape(team_name), 12 * 60 * 60 * 1000),
     ]);
   } else {
     [stats, logos] = await Promise.all([
-      request(url_stats_team + team_name, 2 * 60 * 60 * 1000),
-      request(logo_url + team_name, 12 * 60 * 60 * 1000),
+      request(url_stats_team + escape(team_name), 2 * 60 * 60 * 1000),
+      request(logo_url + escape(team_name), 12 * 60 * 60 * 1000),
     ]);
   }
   if (!stats?.name) {
@@ -267,7 +267,10 @@ export const run: FishyCommandCode = async function (client, interaction) {
   // Set some static stuff for the embed
   embed.setColor("#0099ff");
   embed.setTitle(parseName(stats.name));
-  embed.setAuthor(stats.division, stats.divisionLogo);
+  embed.setAuthor(
+    stats.division || ".",
+    `https://vrmasterleague.com/${stats.divisionLogo}`
+  );
 
   embed.setThumbnail(logos[0].Logo);
   embed.setDescription(description);
