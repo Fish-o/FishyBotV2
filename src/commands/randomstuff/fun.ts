@@ -5,6 +5,7 @@ import {
   FishyCommandCode,
   FishyCommandConfig,
 } from "fishy-bot-framework/lib/types";
+import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
 const DOG_API_URL = "https://api.thedogapi.com/";
 const CAT_API_URL = "https://api.thecatapi.com/";
@@ -40,12 +41,12 @@ async function fetchAnimal(
 }
 
 export const run: FishyCommandCode = async (client, interaction) => {
-  const main_command = interaction.args[0].name;
+  const main_command = interaction.data.options[0].name;
   if (!main_command) {
     return interaction.sendSilent("You broke shit again and >:(");
   }
   if (main_command === "animals") {
-    let animal_type = interaction.args[0].options?.[0].value;
+    let animal_type = interaction.data.options[0].options?.[0].value;
     if (!animal_type) {
       return interaction.sendSilent("Please enter an animal type");
     }
@@ -71,7 +72,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
     }
     interaction.send(embed);
   } else if (main_command === "random") {
-    const type = interaction.args[0]?.options?.[0].name;
+    const type = interaction.data.options[0]?.options?.[0].name;
     if (!type) return interaction.sendSilent("Wrong type");
     if (type === "coin") {
       const randomIndex = Math.floor(Math.random() * 2);
@@ -88,18 +89,27 @@ export const run: FishyCommandCode = async (client, interaction) => {
     } else if (type === "dice") {
       const sides = Number.parseInt(
         `${
-          interaction.args[0]?.options?.[0].options?.find(
+          interaction.data.options[0]?.options?.[0].options?.find(
             (option) => option.name === "sides"
-          )?.value
+          )?.value || "6"
         }` || "6"
       );
       const diceces = Number.parseInt(
         `${
-          interaction.args[0]?.options?.[0].options?.find(
+          interaction.data.options[0].options?.[0].options?.find(
             (option) => option.name === "amount"
-          )?.value
+          )?.value || "1"
         }` || "1"
       );
+      if (sides > 1000000000) {
+        return interaction.send(
+          new ErrorEmbed("You surpassed the 1000000000 side limit")
+        );
+      } else if (diceces > 25) {
+        return interaction.send(
+          new ErrorEmbed("You surpassed the 25 dice limit")
+        );
+      }
       const embed = new MessageEmbed();
       embed.setColor("RANDOM");
       embed.setTitle(`Throwing ${diceces} ${sides}-sided dice..`);
@@ -109,6 +119,8 @@ export const run: FishyCommandCode = async (client, interaction) => {
       }
       embed.setTimestamp();
       interaction.send(embed);
+    } else if (type === "8ball") {
+      interaction.send("no"); // TODO: add this
     }
   } else if (main_command === "fact") {
     let res = await axios.get(

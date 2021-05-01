@@ -10,9 +10,11 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
+  role_object,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import ms from "ms";
+import { awaitConfirm, confirmTime } from "../hidden/confirm";
 
 export const run: FishyCommandCode = async (client, interaction) => {
   if (!interaction.guild) return;
@@ -30,7 +32,11 @@ export const run: FishyCommandCode = async (client, interaction) => {
       const stringRoles = sub_util.options.find((opt) => opt.name === "roles")
         ?.value;
       if (enteredRole) {
-        const role = await interaction.guild.roles.fetch(enteredRole.id);
+        const role = await interaction.guild.roles.fetch(
+          enteredRole.id,
+          true,
+          true
+        );
         if (role) {
           try {
             await role.delete(
@@ -97,7 +103,10 @@ export const run: FishyCommandCode = async (client, interaction) => {
       const color = sub_util.options.find((opt) => opt.name === "color")?.value;
       const raw = sub_util.options.find((opt) => opt.name === "raw")?.value;
       if ((name || color) && !raw) {
-        const obj: RoleData = {};
+        const obj: RoleData = {
+          position: 1,
+          permissions: 0,
+        };
         if (typeof name === "string") {
           obj.name = name;
         }
@@ -119,13 +128,23 @@ export const run: FishyCommandCode = async (client, interaction) => {
         const rawRoles = raw.split(";");
         const failed: Array<string> = [];
         const created: Array<Role> = [];
+        interaction.send(
+          new MessageEmbed()
+            .setTitle("Creating roles..")
+            .setDescription("This might take some time :)")
+            .setColor("YELLOW")
+            .setTimestamp()
+        );
         await Promise.all(
-          rawRoles.map(async (rawRole) => {
+          rawRoles.map(async (rawRole, index) => {
             if (rawRole.trim() == "") return;
             rawRole = rawRole.trim();
             const splitRole = rawRole.split("|");
             if (!splitRole[0]) return failed.push(`1: \`${rawRole}\``);
-            const obj: RoleData = {};
+            const obj: RoleData = {
+              position: index + 1,
+              permissions: 0,
+            };
             obj.name = splitRole[0];
             if (splitRole[1]) {
               obj.color = colourNameToHex(splitRole[1]) || splitRole[1];
@@ -168,7 +187,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
             .setTimestamp()
             .setDescription(`Failed roles: \n${failed.join(",\n")}`);
         }
-        interaction.send(embed);
+        interaction.edit(embed);
       }
     } else if (sub_util_name === "clone") {
       const origin = interaction.data.mentions?.roles?.first();
@@ -239,6 +258,107 @@ export const run: FishyCommandCode = async (client, interaction) => {
       } catch (err) {
         interaction.send(new ErrorEmbed("Couldn't clone the role: ", err));
       }
+    } else if (sub_util_name === "delete-between") {
+      const [role1, role2] = await Promise.all([
+        interaction.guild.roles.fetch(
+          interaction?.mentions?.roles?.first()?.id || "",
+          undefined,
+          true
+        ),
+        interaction.guild.roles.fetch(
+          interaction?.mentions?.roles?.last()?.id || "",
+          undefined,
+          true
+        ),
+      ]);
+      if (!role1 || !role2) {
+        return interaction.send("One of the roles not found");
+      } else if (role1.id === role2.id) {
+        return interaction.send(new ErrorEmbed("The 2 roles cant be the same"));
+      }
+
+      let lowerbound: Role;
+      let upperbound: Role;
+      console.log(role1);
+      console.log(role2);
+      if (role1.position > role2.position) {
+        lowerbound = role2;
+        upperbound = role1;
+      } else if (role1.position < role2.position) {
+        lowerbound = role1;
+        upperbound = role2;
+      } else {
+        return interaction.send(
+          new ErrorEmbed("The two roles cant be the same")
+        );
+      }
+      const guild_roles = await interaction.guild.roles.fetch(
+        undefined,
+        true,
+        true
+      );
+      console.log(guild_roles.cache);
+      const to_delete = guild_roles.cache.filter((element) => {
+        console.log(element);
+        console.log(element.position > lowerbound.position);
+        console.log(element.position < upperbound.position);
+        return (
+          element.position > lowerbound.position &&
+          element.position < upperbound.position
+        );
+      });
+      const embed = new MessageEmbed()
+        .setFooter("You have until")
+        .setTimestamp(Date.now() + confirmTime)
+        .setTitle(`Confirm deleting ${to_delete.size} roles`)
+        .setDescription(
+          `Run \`/confirm\` withing ${ms(
+            confirmTime
+          )} to confirm deleting these roles:\n${to_delete
+            .map((role) => role.toString())
+            .join(",\n")}\nThis will take about ${ms(100)}`
+        )
+        .setColor("YELLOW");
+      interaction.send(embed);
+      const confirmed = await awaitConfirm(interaction.user?.id || "");
+      if (!confirmed) {
+        interaction.edit(
+          new MessageEmbed()
+            .setTimestamp(Date.now() + confirmTime)
+            .setTitle(`Timed out, didn't delete ${to_delete.size} roles`)
+            .setDescription(
+              `Run this command again, and then run \`/confirm\` to delete these roles:\n${to_delete
+                .map((role) => role.toString())
+                .join(",\n")}`
+            )
+            .setColor("RED")
+        );
+      } else if (confirmed) {
+        const failed: Array<Role> = [];
+        const res = await Promise.all(
+          // TODO: this is still buggy and still needs fixing but not by me :D
+          to_delete
+            .map((role) => role)
+            .map(async (role) => {
+              try {
+                await role.delete(
+                  '"/u role delete-between" ran by ' + interaction.user?.tag
+                );
+                return;
+              } catch (err) {
+                failed.push(role);
+              }
+              return;
+            })
+        );
+        return interaction.edit(
+          new MessageEmbed()
+            .setTitle("Deleted the roles!")
+            .setTimestamp()
+            .setDescription(`Roles failed:\n${failed.join("\n, ") || "None!"}`)
+            .setColor("GREEN")
+        );
+      }
     }
   }
 };
@@ -272,6 +392,25 @@ export const config: FishyCommandConfig = {
                 name: "roles",
                 description: "Delete multiple roles",
                 type: ApplicationCommandOptionType.STRING,
+              },
+            ],
+          },
+          {
+            name: "delete-between",
+            description: "(ADVANCED) Delete a single, or multiple roles",
+            type: ApplicationCommandOptionType.SUB_COMMAND,
+            options: [
+              {
+                name: "lowerbound",
+                description: "The role to ",
+                type: ApplicationCommandOptionType.ROLE,
+                required: true,
+              },
+              {
+                name: "upperbound",
+                description: "Delete multiple roles",
+                type: ApplicationCommandOptionType.ROLE,
+                required: true,
               },
             ],
           },

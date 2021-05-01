@@ -197,7 +197,7 @@ export async function ReloadSlashCommands(
   name?: string
 ) {
   //
-  const GuildSlashCommandsUrl = `https://discord.com/api/v8/applications/${
+  const GuildSlashCommandsUrl = `https://discord.com/api/v9/applications/${
     interaction.client.user!.id
   }/guilds/${interaction.guild_id}/commands`;
 
