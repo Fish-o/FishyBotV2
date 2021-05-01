@@ -10,7 +10,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import ms from "ms";
@@ -333,10 +332,6 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-export const help: FishyCommandHelp = {
-  description: "u",
-  usage: "/u [util]",
 };
 
 function colourNameToHex(colour: string): ColorResolvable | undefined {

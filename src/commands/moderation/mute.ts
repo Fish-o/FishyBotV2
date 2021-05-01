@@ -11,7 +11,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import ms from "ms";
@@ -148,8 +147,4 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-export const help: FishyCommandHelp = {
-  description: "Mute a member",
-  usage: "/mute member: member (time: number unit)",
 };

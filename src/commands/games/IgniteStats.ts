@@ -2,7 +2,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import axios from "axios";
@@ -233,11 +232,6 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-
-export const help: FishyCommandHelp = {
-  usage: "/echostats name: OculusNameHere",
-  description: config.interaction_options.description,
 };
 
 export interface IgniteResponse {

@@ -3,7 +3,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
@@ -56,8 +55,4 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-export const help: FishyCommandHelp = {
-  description: "Ban a member from this server",
-  usage: "/ban user: user",
 };

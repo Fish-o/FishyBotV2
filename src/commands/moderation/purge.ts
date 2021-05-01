@@ -3,7 +3,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import ms from "ms";
 
@@ -155,8 +154,4 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-export const help: FishyCommandHelp = {
-  description: "Pong!?",
-  usage: "/ping",
 };

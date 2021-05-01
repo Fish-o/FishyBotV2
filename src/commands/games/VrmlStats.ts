@@ -6,7 +6,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import axios from "axios";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
@@ -369,11 +368,6 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-
-export const help: FishyCommandHelp = {
-  description: "Returns the vrml stats of a team",
-  usage: "/echovrml name: TeamNameHere",
 };
 
 /*

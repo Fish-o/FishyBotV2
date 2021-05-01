@@ -6,7 +6,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import {
   custom_slash_commands,
@@ -356,8 +355,4 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-export const help: FishyCommandHelp = {
-  description: "Create custom commands for your server",
-  usage: "/customcommands",
 };

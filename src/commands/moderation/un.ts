@@ -3,7 +3,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import { mute_role_name } from "./mute";
@@ -117,8 +116,4 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-export const help: FishyCommandHelp = {
-  description: "Revers things! Ex: un mute, un ban, etc..",
-  usage: "/un [mute/ban]",
 };

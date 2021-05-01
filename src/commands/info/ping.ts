@@ -1,8 +1,10 @@
-import { FishyCommandCode, FishyCommandConfig, FishyCommandHelp } from "fishy-bot-framework/lib/types";
-
+import {
+  FishyCommandCode,
+  FishyCommandConfig,
+} from "fishy-bot-framework/lib/types";
 
 export const run: FishyCommandCode = async (client, interaction) => {
-  interaction.sendSilent('Pong!')
+  interaction.sendSilent("Pong!");
 };
 
 export const config: FishyCommandConfig = {
@@ -10,10 +12,6 @@ export const config: FishyCommandConfig = {
   bot_needed: false,
   interaction_options: {
     name: "ping",
-    description: "Ping the bot"
+    description: "Ping the bot",
   },
-};
-export const help: FishyCommandHelp = {
-  description: "Pong!?",
-  usage: "/ping",
 };

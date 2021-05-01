@@ -4,7 +4,6 @@ import {
   ApplicationCommandOptionType,
   FishyCommandCode,
   FishyCommandConfig,
-  FishyCommandHelp,
 } from "fishy-bot-framework/lib/types";
 
 const DOG_API_URL = "https://api.thedogapi.com/";
@@ -88,29 +87,34 @@ export const run: FishyCommandCode = async (client, interaction) => {
       }
     } else if (type === "dice") {
       const sides = Number.parseInt(
-        `${interaction.args[0]?.options?.[0].options?.find(
-          (option) => option.name === "sides"
-        )?.value}` || "6"
+        `${
+          interaction.args[0]?.options?.[0].options?.find(
+            (option) => option.name === "sides"
+          )?.value
+        }` || "6"
       );
       const diceces = Number.parseInt(
-        `${interaction.args[0]?.options?.[0].options?.find(
-          (option) => option.name === "amount"
-        )?.value}` || "1"
+        `${
+          interaction.args[0]?.options?.[0].options?.find(
+            (option) => option.name === "amount"
+          )?.value
+        }` || "1"
       );
       const embed = new MessageEmbed();
       embed.setColor("RANDOM");
       embed.setTitle(`Throwing ${diceces} ${sides}-sided dice..`);
       for (let dice = 1; dice <= diceces; dice++) {
-        const number = Math.floor(Math.random() * sides)+1;
+        const number = Math.floor(Math.random() * sides) + 1;
         embed.addField(`Dice #${dice}`, `${number}/${sides}`, true);
       }
       embed.setTimestamp();
       interaction.send(embed);
     }
-
-  } else if (main_command === "fact" ){
-    let res = await axios.get(`https://uselessfacts.jsph.pl/random.json?language=en`);
-    interaction.send(res.data.text)
+  } else if (main_command === "fact") {
+    let res = await axios.get(
+      `https://uselessfacts.jsph.pl/random.json?language=en`
+    );
+    interaction.send(res.data.text);
   }
 };
 
@@ -194,8 +198,4 @@ export const config: FishyCommandConfig = {
       },
     ],
   },
-};
-export const help: FishyCommandHelp = {
-  description: "fun",
-  usage: "/fun [command]",
 };
