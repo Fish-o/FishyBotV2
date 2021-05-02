@@ -215,55 +215,81 @@ export async function ReloadSlashCommands(
 
   if (!name) {
     let discord_done: Array<string> = [];
-    botSlashCommands.forEach((botSlashCommand) => {
-      let discord_command = discordSlashCommands.find(
-        (cmd) => cmd.name == botSlashCommand.name
-      );
-      if (!discord_command)
-        return axios
-          .post(GuildSlashCommandsUrl, botSlashCommand, {
-            headers: { Authorization: `Bot ${interaction.client.token}` },
-          })
-          .then((res) =>
-            console.log(
-              `ccPOST - ${res.status} Interaction: "${botSlashCommand.name}", `
-            )
-          )
-          .catch((err) => {
-            console.error(err);
+    await Promise.all([
+      botSlashCommands.map((botSlashCommand, index) => {
+        let discord_command = discordSlashCommands.find(
+          (cmd) => cmd.name == botSlashCommand.name
+        );
+        if (!discord_command)
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              axios
+                .post(GuildSlashCommandsUrl, botSlashCommand, {
+                  headers: { Authorization: `Bot ${interaction.client.token}` },
+                })
+                .then((res) =>
+                  resolve(
+                    console.log(
+                      `ccPOST - ${res.status} Interaction: "${botSlashCommand.name}", `
+                    )
+                  )
+                )
+                .catch((err) => {
+                  resolve(console.error(err));
+                });
+            }, (21 / 5) * 1000 * index);
           });
-      discord_done.push(discord_command.id!);
-      if (!ApplicationCommandCompare(botSlashCommand, discord_command))
-        return axios
-          .patch(
-            GuildSlashCommandsUrl + `/${discord_command.id}`,
-            botSlashCommand,
-            {
-              headers: { Authorization: `Bot ${interaction.client.token}` },
-            }
-          )
-          .then((res) =>
-            console.log(
-              `ccPATCH - ${res.status} Interaction: "${botSlashCommand.name}", `
-            )
-          )
-          .catch((err) => {
-            console.error(err);
+        discord_done.push(discord_command.id!);
+        if (!ApplicationCommandCompare(botSlashCommand, discord_command))
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              return axios
+                .patch(
+                  GuildSlashCommandsUrl + `/${discord_command!.id}`,
+                  botSlashCommand,
+                  {
+                    headers: {
+                      Authorization: `Bot ${interaction.client.token}`,
+                    },
+                  }
+                )
+                .then((res) =>
+                  resolve(
+                    console.log(
+                      `ccPATCH - ${res.status} Interaction: "${botSlashCommand.name}", `
+                    )
+                  )
+                )
+                .catch((err) => {
+                  resolve(console.error(err));
+                });
+            }, (21 / 5) * 1000 * index);
           });
-    });
-    discordSlashCommands.forEach((cmd) => {
-      if (!discord_done.includes(cmd.id!)) {
-        axios
-          .delete(GuildSlashCommandsUrl + `/${cmd.id}`, {
-            headers: { Authorization: `Bot ${interaction.client.token}` },
-          })
-          .then((res) =>
-            console.log(`ccDELETE - ${res.status} Interaction: "${cmd.name}", `)
-          )
-          .catch((err) => {
-            console.error(err);
+      }),
+    ]);
+    await Promise.all([
+      discordSlashCommands.map((cmd, index) => {
+        if (!discord_done.includes(cmd.id!)) {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              axios
+                .delete(GuildSlashCommandsUrl + `/${cmd.id}`, {
+                  headers: { Authorization: `Bot ${interaction.client.token}` },
+                })
+                .then((res) =>
+                  resolve(
+                    console.log(
+                      `ccDELETE - ${res.status} Interaction: "${cmd.name}", `
+                    )
+                  )
+                )
+                .catch((err) => {
+                  resolve(console.error(err));
+                });
+            }, (21 / 5) * 1000 * index);
           });
-      }
-    });
+        }
+      }),
+    ]);
   }
 }

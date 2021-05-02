@@ -29,7 +29,7 @@ let time_cache = new Collection<string, number>();
 const ttl = 12 * 60 * 60 * 1000;
 export const run: FishyCommandCode = async (client, interaction) => {
   if (!interaction.guild) return;
-  if (!Object.values(interaction.mentions?.members || {})[0]) {
+  if (!interaction.mentions?.members?.keyArray()?.[0]) {
     return interaction.send(new ErrorEmbed("Please enter a member to mute"));
   }
   const member = interaction.data.mentions?.members?.first();
@@ -54,12 +54,13 @@ export const run: FishyCommandCode = async (client, interaction) => {
   let new_member = await interaction.guild.members.fetch(user.id);
   new_member.roles.add(muterole);
 
-  const time = interaction.args.find((arg) => arg.name == "time")?.value;
-  if (typeof time !== "string")
+  const time = interaction.data.options.find((arg) => arg.name == "time")
+    ?.value;
+  if (typeof time !== "string" && typeof time !== "undefined")
     return interaction.sendSilent("Im to tired for this");
   const miliseconds = time ? ms(time) : undefined;
   const reason =
-    interaction.args.find((arg) => arg.name == "reason")?.value ||
+    interaction.data.options.find((arg) => arg.name == "reason")?.value ||
     "No reason provided";
   const embed = new MessageEmbed();
   embed.setTimestamp();

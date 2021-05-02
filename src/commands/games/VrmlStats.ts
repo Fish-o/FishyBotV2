@@ -110,8 +110,10 @@ const url_stats_team = `https://vrmasterleague.com/Services.asmx/GetTeamStats?ga
 const logo_url = `https://vrmasterleague.com/Services.asmx/GetTeamLogo?game=echoarena&teamName=`;
 export const run: FishyCommandCode = async function (client, interaction) {
   let msg_sent = false;
-  let team_name = interaction.args.find((arg) => arg.name === "name")?.value;
-  let matches = interaction.args.find((arg) => arg.name === "matches")?.value;
+  let team_name = interaction.data.options.find((arg) => arg.name === "name")
+    ?.value;
+  let matches = interaction.data.options.find((arg) => arg.name === "matches")
+    ?.value;
   if (typeof matches !== "boolean" && typeof matches !== "undefined")
     return interaction.sendSilent("Pain");
   if (!team_name) {

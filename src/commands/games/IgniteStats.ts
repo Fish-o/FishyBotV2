@@ -22,7 +22,8 @@ const overrides = {
 };
 
 export const run: FishyCommandCode = async (Client, Interaction) => {
-  let oculus_name = Interaction.args.find((arg) => arg.name == "name")?.value;
+  let oculus_name = Interaction.data.options.find((arg) => arg.name == "name")
+    ?.value;
   if (!oculus_name) {
     let err = new ErrorEmbed("Please enter a name");
     Interaction.send(err);

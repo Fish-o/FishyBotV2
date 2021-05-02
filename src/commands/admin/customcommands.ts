@@ -7,6 +7,7 @@ import {
   FishyCommandCode,
   FishyCommandConfig,
 } from "fishy-bot-framework/lib/types";
+import { WarnEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import {
   custom_slash_commands,
   ReloadSlashCommands,
@@ -159,9 +160,19 @@ export const run: FishyCommandCode = async (client, interaction) => {
     interaction.sendSilent("Made the command!! :D");
     ReloadSlashCommands(interaction);
   } else if (action === "reload") {
-    interaction.send("Reloading commands...");
+    interaction.send(
+      new WarnEmbed(
+        "Reloading commands...",
+        "This might take some time depending on how many commands to reload, so please be patient"
+      )
+    );
     await ReloadSlashCommands(interaction);
-    interaction.edit("Reloaded commands!");
+    interaction.edit(
+      new MessageEmbed()
+        .setTitle("Reloaded commands!")
+        .setTimestamp()
+        .setColor("GREEN")
+    );
   } else if (action === "list") {
     const db_guild = await interaction.getDbGuild();
     const custom_slash_commands: { [key: string]: custom_slash_commands } =
