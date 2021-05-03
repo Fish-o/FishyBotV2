@@ -8,11 +8,12 @@ import {
 } from "discord.js";
 import {
   ApplicationCommandOptionType,
+  channel_types,
   FishyCommandCode,
   FishyCommandConfig,
   role_object,
 } from "fishy-bot-framework/lib/types";
-import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
+import { ErrorEmbed, WarnEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import ms from "ms";
 import { awaitConfirm, confirmTime } from "../hidden/confirm";
 
@@ -316,7 +317,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
             confirmTime
           )} to confirm deleting these roles:\n${to_delete
             .map((role) => role.toString())
-            .join(",\n")}\nThis will take about ${ms(100)}`
+            .join(",\n")}\n` //This will take about ${ms(100)}`
         )
         .setColor("YELLOW");
       interaction.send(embed);
@@ -360,14 +361,81 @@ export const run: FishyCommandCode = async (client, interaction) => {
         );
       }
     }
+  } else if (main_util_name === "channel") {
+    const sub_util = main_util.options[0];
+    const sub_util_name = sub_util?.name;
+    if (sub_util_name === "delete-category") {
+      const category = interaction.data.mentions?.channels?.first();
+      console.log(category);
+      if (!category)
+        return interaction.send("1387477777777738383019384585563764");
+      else if (category.type === channel_types.GUILD_CATEGORY) {
+        const guild_channels = interaction.guild.channels.cache.filter(
+          (channel) => channel.parentID === category.id
+        );
+        if (!guild_channels || !guild_channels.first())
+          return interaction.send(
+            new ErrorEmbed("There are no channels in that category to delete")
+          );
+        interaction.send(
+          new WarnEmbed(
+            `Please confirm the deletion of ${guild_channels.size} channels`,
+            `Run \`/confirm\` withing ${ms(
+              confirmTime
+            )} to confirm deleting these channels:\n${guild_channels
+              .map((channel) => channel.toString())
+              .join(",\n")}`
+          )
+        );
+        const confirmed = await awaitConfirm(interaction.user?.id!);
+        if (!confirmed) {
+          return interaction.edit(
+            new ErrorEmbed(
+              `Canceled the deletion of ${guild_channels.size} channels`,
+              `These channels did not get deleted:\n${guild_channels
+                .map((channel) => channel.toString())
+                .join(",\n")}`
+            )
+          );
+        } else if (confirmed) {
+          await Promise.all(
+            guild_channels.map((channel) =>
+              channel.delete(
+                `"/u channel delete-category" ran by ${interaction.user?.tag}`
+              )
+            )
+          );
+
+          interaction.edit(
+            new MessageEmbed()
+              .setTitle(
+                `Canceled the deletion of ${guild_channels.size} channels`
+              )
+              .setDescription(
+                `These channels got deleted:\n\`${guild_channels
+                  .map((channel) => channel.name)
+                  .join("`,\n`")}\``
+              )
+              .setTimestamp()
+              .setColor("GREEN")
+          );
+        }
+      } else {
+        return interaction.send(
+          new ErrorEmbed(
+            "Please enter a category",
+            `<#${category.id}> is not a category`
+          )
+        );
+      }
+    }
   }
 };
 
 export const config: FishyCommandConfig = {
   name: "u",
   bot_needed: true,
-  bot_perms: ["MANAGE_ROLES"],
-  user_perms: ["MANAGE_ROLES"],
+  bot_perms: ["MANAGE_ROLES", "MANAGE_CHANNELS"],
   interaction_options: {
     name: "u",
     description:
@@ -375,6 +443,7 @@ export const config: FishyCommandConfig = {
     options: [
       {
         name: "role",
+        user_perms: ["MANAGE_ROLES"],
         description: "Commands related to roles",
         type: ApplicationCommandOptionType.SUB_COMMAND_GROUP,
         options: [
@@ -399,6 +468,7 @@ export const config: FishyCommandConfig = {
             name: "delete-between",
             description: "(ADVANCED) Delete a single, or multiple roles",
             type: ApplicationCommandOptionType.SUB_COMMAND,
+            user_perms: ["ADMINISTRATOR"],
             options: [
               {
                 name: "lowerbound",
@@ -464,6 +534,28 @@ export const config: FishyCommandConfig = {
                 description:
                   "Assign the new role to the people who have the clone",
                 type: ApplicationCommandOptionType.BOOLEAN,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: "channel",
+        description: "Util commands related to channels and categories",
+        type: ApplicationCommandOptionType.SUB_COMMAND_GROUP,
+        user_perms: ["MANAGE_CHANNELS"],
+        options: [
+          {
+            name: "delete-category",
+            description: "Delete a category and all its channels in it",
+            type: ApplicationCommandOptionType.SUB_COMMAND,
+            user_perms: ["ADMINISTRATOR"],
+            options: [
+              {
+                name: "category",
+                description: "The category to delete",
+                type: ApplicationCommandOptionType.CHANNEL,
+                required: true,
               },
             ],
           },
