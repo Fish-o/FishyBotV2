@@ -194,7 +194,7 @@ export function ParseFishyCode(code: string, interaction: Interaction): string {
 
 export async function ReloadSlashCommands(
   interaction: Interaction,
-  name?: string
+  name?: string // TODO: make name do somehting
 ) {
   //
   const GuildSlashCommandsUrl = `https://discord.com/api/v9/applications/${
@@ -215,7 +215,7 @@ export async function ReloadSlashCommands(
 
   if (!name) {
     let discord_done: Array<string> = [];
-    await Promise.all([
+    await Promise.all(
       botSlashCommands.map((botSlashCommand, index) => {
         let discord_command = discordSlashCommands.find(
           (cmd) => cmd.name == botSlashCommand.name
@@ -265,9 +265,9 @@ export async function ReloadSlashCommands(
                 });
             }, (21 / 5) * 1000 * index);
           });
-      }),
-    ]);
-    await Promise.all([
+      })
+    );
+    await Promise.all(
       discordSlashCommands.map((cmd, index) => {
         if (!discord_done.includes(cmd.id!)) {
           return new Promise((resolve) => {
@@ -289,7 +289,7 @@ export async function ReloadSlashCommands(
             }, (21 / 5) * 1000 * index);
           });
         }
-      }),
-    ]);
+      })
+    );
   }
 }
