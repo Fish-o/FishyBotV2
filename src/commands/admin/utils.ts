@@ -466,7 +466,7 @@ export const config: FishyCommandConfig = {
           },
           {
             name: "delete-between",
-            description: "(ADVANCED) Delete a single, or multiple roles",
+            description: "(UNSTABLE) Delete roles between two other roles",
             type: ApplicationCommandOptionType.SUB_COMMAND,
             user_perms: ["ADMINISTRATOR"],
             options: [
