@@ -8,7 +8,6 @@ import axios from "axios";
 import { Collection, MessageEmbed } from "discord.js";
 import { parseName } from "../../utils";
 import IgniteOverride from "../../models/IgniteOverride";
-import { stringify } from "node:querystring";
 
 const ttl = 1 * 60 * 60 * 1000;
 let cache: Collection<
