@@ -13,7 +13,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
   if (action === "feature") {
     const text = interaction.data.options[0].options.find(
       (opt) => opt.name === "text"
-    );
+    )?.value;
     const invite = interaction.data.options[0].options.find(
       (opt) => opt.name === "invite"
     )?.value;
