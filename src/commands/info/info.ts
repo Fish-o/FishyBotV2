@@ -299,7 +299,9 @@ export const run: FishyCommandCode = async (client, interaction) => {
       .addField(`Users`, `${users_size}`, true)
       .addField(
         `Invite`,
-        `[Check the FishyBot website!](https://fishman.live/)`,
+        `[Invite link!](https://discord.com/api/oauth2/authorize?client_id=${
+          client.user!.id
+        }&permissions=8&scope=bot%20applications.commands`,
         true
       )
       .setFooter(`Online since`)
