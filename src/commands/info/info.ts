@@ -1,6 +1,10 @@
 import { Guild, MessageEmbed, Permissions, Role } from "discord.js";
 import {
   ApplicationCommandOptionType,
+  ComponentActionRow,
+  ComponentButton,
+  ComponentStyle,
+  ComponentType,
   FishyCommandCode,
   FishyCommandConfig,
   role_object,
@@ -103,7 +107,28 @@ export const run: FishyCommandCode = async (client, interaction) => {
       true
     );
     embed.addField(`Notes`, notes || "I have nothing to note", true);
-    interaction.send(embed);
+
+    const components: ComponentButton[] = [];
+    components.push({
+      type: ComponentType.Button,
+      label: "Kick",
+      custom_id: `kick_${member.id}`,
+      style: ComponentStyle.Secondary,
+      disabled:
+        !interaction.member?.permissions.has("KICK_MEMBERS") ||
+        !member.kickable,
+    });
+    components.push({
+      type: ComponentType.Button,
+      label: "Ban",
+      custom_id: `ban_${member.id}`,
+      style: ComponentStyle.Danger,
+      disabled:
+        !interaction.member?.permissions.has("BAN_MEMBERS") || !member.bannable,
+    });
+    interaction.send(embed, {
+      components: [{ components: components, type: ComponentType.ActionRow }],
+    });
     //.addField("Acknowledgements: ", `${warnings}`, true);
   } else if (action === "server") {
     console.time("Func");
