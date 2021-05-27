@@ -8,8 +8,9 @@ import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
 export const run: FishyCommandCode = async (client, interaction) => {
   console.log(interaction.raw_interaction);
-  const member_id = interaction.data.options.find((arg) => arg.name == "member")
-    ?.value;
+  const member_id = interaction.data.options.find(
+    (arg) => arg.name == "member"
+  )?.value;
   if (!member_id) {
     return interaction.send(
       new ErrorEmbed("Please enter a member whom to kick")
@@ -28,7 +29,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
     "Could not kick that member",
     `A few things that could cause this:
 1) Does the user has a role higher then the FishyBot role?
-2) Does FishyBot have neither of the "kick members" or "administator" permissions?
+2) Does FishyBot have neither of the "kick members" or "administrator" permissions?
 3) Is that person the server owner?`
   );
 
@@ -39,7 +40,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
     let guild_member = await member.kick(member_id);
     interaction.send(
       new ErrorEmbed(
-        `Succesfully kicked user "${guild_member.user.tag}"`
+        `Successfully kicked user "${guild_member.user.tag}"`
       ).setColor("GREEN")
     );
   } catch (err) {
