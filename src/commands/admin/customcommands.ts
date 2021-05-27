@@ -60,7 +60,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
     To finish run \`/customcommands finish response:FISHYCODE\`
     
     **How does FishyCode work?**
-    If you dont want to do anything special you can just enter the response you want it to give.
+    If you don't want to do anything special you can just enter the response you want it to give.
     You can get the value of one of your arguments like this:  \`Wait {{ member_person.mention }} is {{ int_age }} years old already!?\`
     So basically : {{ argumentType_argumentName }}, and if the argument is a member you get these propperties:  \`.mention\`, \`.id\`, \`.displayname\` and \`.tag\`
     
@@ -182,7 +182,9 @@ export const run: FishyCommandCode = async (client, interaction) => {
 
     if (interaction.data.options[0]?.options?.[0]?.name === "command") {
       if (typeof interaction.data.options[0].options[0].value !== "string")
-        return;
+        return interaction.send(
+          "how u manage to make command not a string, stop it bro"
+        );
       let command: custom_slash_commands =
         db_guild.custom_slash_commands[
           interaction.data.options[0].options[0].value.toLowerCase()
