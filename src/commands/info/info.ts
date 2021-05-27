@@ -425,23 +425,31 @@ export async function GenerateChart(
   try {
     let join_dates: Array<number> = [];
     const members = await guild.members.fetch();
-
+    let Skipped: number = 0;
     members.forEach((member) => {
-      if (
-        !member.user.bot &&
-        (!from || (member.joinedTimestamp && member.joinedTimestamp > from)) &&
-        (!until || (member.joinedTimestamp && member.joinedTimestamp < until))
-      ) {
-        join_dates.push(
-          moment(
-            moment.utc(member.joinedAt).format("DD/MM/YYYY"),
-            "DD/MM/YYYY"
-          ).unix()
-        );
+      if (!member.user.bot) {
+        if (
+          (!from ||
+            (member.joinedTimestamp && member.joinedTimestamp > from)) &&
+          (!until || (member.joinedTimestamp && member.joinedTimestamp < until))
+        ) {
+          join_dates.push(
+            moment(
+              moment.utc(member.joinedAt).format("DD/MM/YYYY"),
+              "DD/MM/YYYY"
+            ).unix()
+          );
+        } else if (
+          from &&
+          member.joinedTimestamp &&
+          member.joinedTimestamp < from
+        ) {
+          Skipped++;
+        }
       }
     });
     join_dates.sort();
-    let data = { [join_dates[0]]: 0 };
+    let data = { [join_dates[0]]: Skipped };
     let nice_data: { [key: string]: number } = {};
 
     let last_date = join_dates[0];
