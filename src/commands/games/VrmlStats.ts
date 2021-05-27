@@ -17,46 +17,44 @@ const request_cache: Collection<
   { timestamp: number; ttl: number; data: any }
 > = new Collection();
 function request(url: string, ttl?: number): Promise<any> {
-  return new Promise(
-    async (resolve, reject): Promise<any> => {
-      async function refresh() {
-        let res = await axios.get(url);
-        if (!res || !res.status || !res.data) {
-          console.error("Made request with bad response: \n" + url);
-          console.error(res.status);
-          console.error(res.config);
-        }
-        let obj = {
-          timestamp: Date.now(),
-          ttl: ttl || 60 * 1000,
-          data: res.data,
-        };
-        request_cache.set(url, obj);
-        return res.data;
+  return new Promise(async (resolve, reject): Promise<any> => {
+    async function refresh() {
+      let res = await axios.get(url);
+      if (!res || !res.status || !res.data) {
+        console.error("Made request with bad response: \n" + url);
+        console.error(res.status);
+        console.error(res.config);
       }
-
-      if (request_cache.has(url)) {
-        const cached_request = request_cache.get(url)!;
-        if (cached_request.timestamp + cached_request.ttl < Date.now()) {
-          return resolve(await refresh());
-        } else if (
-          cached_request.timestamp + cached_request.ttl / 4 <
-          Date.now()
-        ) {
-          resolve(cached_request.data);
-          return refresh();
-        } else {
-          resolve(cached_request.data);
-        }
-      } else {
-        return resolve(refresh());
-      }
+      let obj = {
+        timestamp: Date.now(),
+        ttl: ttl || 60 * 1000,
+        data: res.data,
+      };
+      request_cache.set(url, obj);
+      return res.data;
     }
-  );
+
+    if (request_cache.has(url)) {
+      const cached_request = request_cache.get(url)!;
+      if (cached_request.timestamp + cached_request.ttl < Date.now()) {
+        return resolve(await refresh());
+      } else if (
+        cached_request.timestamp + cached_request.ttl / 4 <
+        Date.now()
+      ) {
+        resolve(cached_request.data);
+        return refresh();
+      } else {
+        resolve(cached_request.data);
+      }
+    } else {
+      return resolve(refresh());
+    }
+  });
 }
 
 const base_team_url = `https://vrmasterleague.com/EchoArena/Teams/`;
-function scrap(
+function scrapMatches(
   team_id: string,
   team_name: string
 ): Promise<Array<{ home: string; away: string; score: string }>> {
@@ -104,16 +102,56 @@ function scrap(
     resolve(matches);
   });
 }
+function scrapVods(
+  team_id: string,
+  team_name: string
+): Promise<Array<{ against: string; link: string }>> {
+  //: Promise<any>{
+  return new Promise(async (resolve, reject) => {
+    let res = await request(base_team_url + team_id);
+    let $ = cheerio.load(res);
+    const rows = $(".matches_team_row");
+    let vods: Array<{ against: string; link: string }> = [];
+    let done = rows.map((ind, ele) => {
+      //if ($(ele).find(".date_tbd")) return undefined;
+      //$(ele).find(".cast_cell")
+
+      const VodLink = $(ele).find(".match-video-url-wrapper")?.attr("href");
+      if (!VodLink || VodLink == "") return;
+      const home_team = $(ele).find(".home_team_cell");
+      const home_team_name = home_team.find(".team_name").text();
+
+      let against: string;
+      if (team_name == home_team_name) {
+        const away_team = $(ele).find(".away_team_cell");
+        const away_team_name = away_team.find(".team_name").text();
+        against = away_team_name;
+      } else {
+        against = home_team_name;
+      }
+      home_team_name;
+      vods.push({
+        against: against,
+        link: VodLink,
+      });
+    });
+    resolve(vods);
+  });
+}
 
 const url_all_teams = `https://vrmasterleague.com/Services.asmx/GetTeamPlayersStats?game=echoarena&activeOnly=true&includeRetired=false`;
 const url_stats_team = `https://vrmasterleague.com/Services.asmx/GetTeamStats?game=echoarena&teamName=`;
 const logo_url = `https://vrmasterleague.com/Services.asmx/GetTeamLogo?game=echoarena&teamName=`;
 export const run: FishyCommandCode = async function (client, interaction) {
   let msg_sent = false;
-  let team_name = interaction.data.options.find((arg) => arg.name === "name")
-    ?.value;
-  let matches = interaction.data.options.find((arg) => arg.name === "matches")
-    ?.value;
+  let team_name = interaction.data.options.find(
+    (arg) => arg.name === "name"
+  )?.value;
+  let matches = interaction.data.options.find(
+    (arg) => arg.name === "matches"
+  )?.value;
+  let vods = interaction.data.options.find((arg) => arg.name === "vods")?.value;
+
   if (typeof matches !== "boolean" && typeof matches !== "undefined")
     return interaction.sendSilent("Pain");
   if (!team_name) {
@@ -216,18 +254,37 @@ export const run: FishyCommandCode = async function (client, interaction) {
   );
 
   // Getting team stats now
-  let stats: vrlmTeamStats;
+  let stats: vrmlTeamStats;
   let logos: Array<logoData>;
-  let scrapped:
+  let scrappedMatches:
     | Array<{
         home: string;
         away: string;
         score: string;
       }>
     | undefined;
-  if (matches) {
-    [scrapped, stats, logos] = await Promise.all([
-      scrap(all_teams_team!.id, all_teams_team!.name),
+  let scrappedVods:
+    | Array<{
+        against: string;
+        link: string;
+      }>
+    | undefined;
+  if (matches && !vods) {
+    [scrappedMatches, stats, logos] = await Promise.all([
+      scrapMatches(all_teams_team!.id, all_teams_team!.name),
+      request(url_stats_team + escape(team_name), 2 * 60 * 60 * 1000),
+      request(logo_url + escape(team_name), 12 * 60 * 60 * 1000),
+    ]);
+  } else if (!matches && vods) {
+    [scrappedVods, stats, logos] = await Promise.all([
+      scrapVods(all_teams_team!.id, all_teams_team!.name),
+      request(url_stats_team + escape(team_name), 2 * 60 * 60 * 1000),
+      request(logo_url + escape(team_name), 12 * 60 * 60 * 1000),
+    ]);
+  } else if (matches && vods) {
+    [scrappedVods, scrappedMatches, stats, logos] = await Promise.all([
+      scrapVods(all_teams_team!.id, all_teams_team!.name),
+      scrapMatches(all_teams_team!.id, all_teams_team!.name),
       request(url_stats_team + escape(team_name), 2 * 60 * 60 * 1000),
       request(logo_url + escape(team_name), 12 * 60 * 60 * 1000),
     ]);
@@ -246,8 +303,7 @@ export const run: FishyCommandCode = async function (client, interaction) {
   } else if (!logos?.[0]?.Logo) {
     logos[0] = {
       Name: team_name,
-      Logo:
-        "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.hQNEo89LqUCnSl9TFCbHPgHaEK%26pid%3DApi&f=1",
+      Logo: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.hQNEo89LqUCnSl9TFCbHPgHaEK%26pid%3DApi&f=1",
       Fanart:
         "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.hQNEo89LqUCnSl9TFCbHPgHaEK%26pid%3DApi&f=1",
       Division:
@@ -293,10 +349,10 @@ export const run: FishyCommandCode = async function (client, interaction) {
     });
   team_members = team_members.slice(0, -2);
 
-  if (scrapped)
+  if (scrappedMatches)
     embed.addFields({
       name: "Past matches",
-      value: scrapped.map((scrap) => {
+      value: scrappedMatches.map((scrap) => {
         if (scrap.score.split(" - ")[0] > scrap.score.split(" - ")[1]) {
           scrap.home = `**${scrap.home}**`;
         } else {
@@ -306,6 +362,41 @@ export const run: FishyCommandCode = async function (client, interaction) {
       }),
       inline: true,
     });
+  if (scrappedVods) {
+    let text = scrappedVods.map((scrap) => {
+      return `[${scrap.against}](${scrap.link})`;
+    });
+    if (text.join("/n").length < 1020) {
+      embed.addFields({
+        name: "Vods",
+        value: text.join("/n"),
+        inline: true,
+      });
+    } else {
+      let working = "";
+      let i = 0;
+      for (let vod of text) {
+        if (working.length + vod.length < 1000) {
+          working += `\n${vod}`;
+        } else {
+          embed.addFields({
+            name: `Vods part #${i + 1}`,
+            value: working,
+            inline: true,
+          });
+          i++;
+          working = "";
+        }
+      }
+      if (working && working !== "") {
+        embed.addFields({
+          name: `Vods part #${i + 1}`,
+          value: working,
+          inline: true,
+        });
+      }
+    }
+  }
 
   embed.addFields({ name: "Team members", value: team_members, inline: true });
   // This spaghetti monster makes the matches look nice
@@ -342,12 +433,14 @@ export const run: FishyCommandCode = async function (client, interaction) {
 
   // Add timestamp
   embed.setTimestamp();
-
-  if (msg_sent) {
-    interaction.edit(embed);
-  } else {
-    interaction.send(embed);
-  }
+  console.log(embed);
+  if (!interaction.channel?.isText()) return;
+  interaction.channel.send(embed);
+  // if (msg_sent) {
+  //   interaction.edit(embed);
+  // } else {
+  //   interaction.send(embed);
+  // }
 };
 
 export const config: FishyCommandConfig = {
@@ -368,12 +461,17 @@ export const config: FishyCommandConfig = {
         description: "View the matches that team played",
         type: ApplicationCommandOptionType.BOOLEAN,
       },
+      {
+        name: "vods",
+        description: "View the vods of matches casted",
+        type: ApplicationCommandOptionType.BOOLEAN,
+      },
     ],
   },
 };
 
 /*
-https://vrmasterleague.com/Services.asmx/GetVODs?channelID / GetStreams
+b  / GetStreams
 http://vrmasterleague.com/Services.asmx/GetTeamPlayersStats?game=onward&activeOnly=false&includeRetired=false
 https://vrmasterleague.com/Services.asmx/GetTeamStats?game=onward&teamName=MAYHEM
 
@@ -502,7 +600,7 @@ interface vrmlPlayer {
   role: string; // "Team Owner"                  Starter                  Player
 }
 
-interface vrlmTeamStats {
+interface vrmlTeamStats {
   rankWorldWide: number;
   rank: number;
   division: Division;
