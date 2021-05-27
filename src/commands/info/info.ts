@@ -344,10 +344,10 @@ export const run: FishyCommandCode = async (client, interaction) => {
     let value_role = interaction.data.mentions?.roles?.first();
     if (!value_role) {
       if (!interaction.member?.hasPermission("MANAGE_ROLES"))
-        return interaction.sendSilent("You arent allowed to run this command");
+        return interaction.sendSilent("You aren't allowed to run this command");
       const guild_roles_manager = interaction.guild?.roles;
       if (!guild_roles_manager)
-        return interaction.sendSilent("Couldnt fetch this servers roles");
+        return interaction.sendSilent("Couldn't fetch this servers roles");
 
       function compare(a: Role, b: Role) {
         if (a.position > b.position) {
@@ -360,6 +360,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       }
       let text = "";
       const guild_roles = (await guild_roles_manager.fetch()).cache.array();
+      const parts = [];
       guild_roles.sort(compare).forEach((role) => {
         let append = `${role.toString()} `;
         if (
@@ -370,13 +371,29 @@ export const run: FishyCommandCode = async (client, interaction) => {
         ) {
           append += `- ⚠️ Can Mention Everyone`;
         }
+        if ((text + append + "\n").length > 1600) {
+          parts.push(text);
+          text = "";
+        }
         text += append + "\n";
       });
-      const Embed = new Discord.MessageEmbed()
+      parts.push(text);
+      const color = getColorCode();
+      const Embed = new MessageEmbed()
         .setTitle(`Roles for ${interaction.guild!.name}`)
-        .setColor("RANDOM")
-        .setDescription(text);
-      return interaction.send(Embed);
+        .setColor(color)
+        .setDescription(parts.shift());
+      if (parts[0]) {
+        const embeds = [Embed];
+        embeds.push(
+          ...parts.map((part) =>
+            new MessageEmbed().setColor(color).setDescription(part)
+          )
+        );
+        interaction.send(undefined, { embeds: embeds });
+      } else {
+        return interaction.send(Embed);
+      }
     } else {
       const Embed = new Discord.MessageEmbed()
         .setTitle(`Role: ${value_role.name}`)
@@ -398,6 +415,15 @@ export const run: FishyCommandCode = async (client, interaction) => {
     }
   }
 };
+
+function getColorCode() {
+  var makeColorCode = "0123456789ABCDEF";
+  var code = "#";
+  for (var count = 0; count < 6; count++) {
+    code = code + makeColorCode[Math.floor(Math.random() * 16)];
+  }
+  return code;
+}
 
 export const config: FishyCommandConfig = {
   name: "info",
