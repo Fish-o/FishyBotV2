@@ -1,14 +1,17 @@
 import { GuildMember, MessageEmbed, User } from "discord.js";
 import {
   ApplicationCommandOptionType,
+  ComponentStyle,
+  ComponentType,
   FishyCommandCode,
   FishyCommandConfig,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
 export const run: FishyCommandCode = async (client, interaction) => {
-  const user_id = interaction.data.options.find((arg) => arg.name == "user")
-    ?.value;
+  const user_id = interaction.data.options.find(
+    (arg) => arg.name == "user"
+  )?.value;
   if (!user_id) {
     return interaction.send(new ErrorEmbed("Please enter a user whom to ban"));
   }
@@ -22,7 +25,22 @@ export const run: FishyCommandCode = async (client, interaction) => {
     else name = guild_member;
 
     interaction.send(
-      new ErrorEmbed(`Succesfully banned user "${name}"`).setColor("GREEN")
+      new ErrorEmbed(`Succesfully banned user "${name}"`).setColor("GREEN"),
+      {
+        components: [
+          {
+            components: [
+              {
+                type: ComponentType.Button,
+                style: ComponentStyle.Success,
+                label: "Unban",
+                custom_id: `unban_${user_id}`,
+              },
+            ],
+            type: ComponentType.ActionRow,
+          },
+        ],
+      }
     );
   } catch (err) {
     console.error(err);
