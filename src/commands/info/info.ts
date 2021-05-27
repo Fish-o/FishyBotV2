@@ -356,7 +356,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       }
       const date = new Date();
       date.setDate(day);
-      date.setMonth(month);
+      date.setMonth(month + 1);
       date.setFullYear(year);
       from = date.getTime();
       description += `From: \`${day}-${month}-${year}\`\n`;
@@ -398,7 +398,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       }
       const date = new Date();
       date.setDate(day);
-      date.setMonth(month);
+      date.setMonth(month + 1);
       date.setFullYear(year);
       until = date.getTime();
       description += `Until: \`${day}-${month}-${year}\`\n`;
