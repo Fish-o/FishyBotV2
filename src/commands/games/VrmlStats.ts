@@ -1,5 +1,3 @@
-// TODO: Add a view for upcomming matches
-
 import Fuse from "fuse.js";
 import { Collection, MessageEmbed } from "discord.js";
 import {

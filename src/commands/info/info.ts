@@ -1,4 +1,4 @@
-import { Guild, MessageEmbed, Permissions, Role } from "discord.js";
+import { Guild, Message, MessageEmbed, Permissions, Role } from "discord.js";
 import {
   ApplicationCommandOptionType,
   ComponentActionRow,
@@ -13,6 +13,7 @@ import moment from "moment";
 import Discord from "discord.js";
 import QuickChart from "quickchart-js";
 import ms from "ms";
+import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 const package_json = require("./../../../package.json");
 
 const max_graph_item = 400;
@@ -171,118 +172,6 @@ export const run: FishyCommandCode = async (client, interaction) => {
         return onlineCount;
       }
 
-      members.forEach((member) => {
-        if (!member.user.bot) {
-          join_dates.push(
-            moment(
-              moment.utc(member.joinedAt).format("DD/MM/YYYY"),
-              "DD-MM-YYYY"
-            ).unix()
-          );
-        }
-      });
-      join_dates.sort();
-      let data = { [join_dates[0]]: 0 };
-      let nice_data: { [key: string]: number } = {};
-
-      let last_date = join_dates[0];
-      join_dates.forEach((join_date) => {
-        if (data[join_date]) {
-          data[join_date] = data[join_date] + 1;
-        } else {
-          data[join_date] = data[last_date] + 1;
-
-          //convert the unix time of the last to dd/mm/yyyy
-          nice_data[moment.utc(last_date * 1000).format("YYYY/MM/DD")] =
-            data[last_date];
-        }
-        last_date = join_date;
-      });
-
-      let nice_array: Array<{
-        users: number;
-        date: string;
-        distance: number;
-      }> = [];
-      let proximitys: Array<number> = [];
-      Object.keys(nice_data).forEach((date, index, array) => {
-        let distance = -1;
-        if (index !== 0 && index !== array.length - 1) {
-          const location = Math.round(new Date(date).valueOf() / 1000);
-          const distance_before =
-            location - Math.round(new Date(array[index - 1]).valueOf() / 1000);
-
-          const distance_after =
-            Math.round(new Date(array[index + 1]).valueOf() / 1000) - location;
-          distance = (distance_before ^ 2) + (distance_after ^ 2);
-          proximitys.push(distance);
-        }
-
-        nice_array.push({
-          users: nice_data[date],
-          date: date,
-          distance: distance,
-        });
-      });
-      if (max_graph_item - nice_array.length < 0) {
-        proximitys = proximitys.sort((a, b) => a - b);
-        let toRemove = proximitys.slice(0, nice_array.length - max_graph_item);
-        nice_array = nice_array.filter(
-          (obj) => !toRemove.includes(obj.distance)
-        );
-      }
-
-      //var canvas = createCanvas(600,400)//600, 400)
-      //var ctx = canvas.getContext('2d')
-      //console.log(JSON.stringify(ctx))
-      const mychartOptions = {
-        type: "line",
-
-        data: {
-          labels: nice_array.map((obj) => obj.date),
-          datasets: [
-            {
-              label: "Members over time",
-              //color: 'rgba(255, 255, 255, 1)',
-              data: nice_array.map((obj) => obj.users),
-              fill: true,
-            },
-          ],
-        },
-        options: {
-          legend: {
-            labels: {
-              fontColor: "White",
-            },
-          },
-          scales: {
-            xAxes: [
-              {
-                type: "time",
-                ticks: {
-                  fontColor: "white",
-                },
-              },
-            ],
-            yAxes: [
-              {
-                ticks: {
-                  fontColor: "white",
-                },
-              },
-            ],
-          },
-        },
-      };
-      const chart = new QuickChart();
-      chart
-        .setConfig(mychartOptions)
-        .setBackgroundColor("transparent")
-        .setWidth(500)
-        .setHeight(300)
-        .setDevicePixelRatio(10);
-      console.log(chart.getUrl().length);
-      const url = await chart.getShortUrl();
       let sicon = interaction.guild.iconURL() || "";
       let serverembed = new Discord.MessageEmbed()
         .setTitle(`${interaction.guild.name} - Information`)
@@ -304,7 +193,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
 
         .setFooter(`${interaction.guild.id} created at:`)
         .setTimestamp(interaction.guild.createdAt)
-        .setImage(url);
+        .setImage(await GenerateChart(interaction.guild));
       /*    if(IMAGE){
           serverembed.setImage(IAMGE)
       }*/
@@ -413,9 +302,253 @@ export const run: FishyCommandCode = async (client, interaction) => {
       }
       return interaction.send(Embed);
     }
+  } else if (action === "chart") {
+    if (!interaction.guild)
+      return interaction.send("This commands need a guild");
+    const fromRaw = interaction.data.options[0]?.options.find(
+      (opt) => opt.name === "from"
+    )?.value;
+    const untilRaw = interaction.data.options[0]?.options.find(
+      (opt) => opt.name === "until"
+    )?.value;
+
+    if (
+      (fromRaw !== undefined && typeof fromRaw !== "string") ||
+      (untilRaw !== undefined && typeof untilRaw !== "string")
+    ) {
+      return interaction.send("Types are invalid");
+    }
+    let from: number | undefined = undefined;
+    let until: number | undefined = undefined;
+    let description = "";
+    if (fromRaw) {
+      let day: number;
+      let month: number;
+      let year: number;
+      const fromSplit = fromRaw.split(/(?:-|\/|\.)/gi);
+      if (
+        !isNormalInteger(fromSplit[0] || "asdf") ||
+        Number.parseInt(fromSplit[0].trim()) > 31
+      ) {
+        return interaction.send(
+          new ErrorEmbed(`Invalid amount of days: \`${fromSplit[0].trim()}\``)
+        );
+      } else {
+        day = Number.parseInt(fromSplit[0].trim());
+      }
+      if (
+        !isNormalInteger(fromSplit[1] || "asdf") ||
+        Number.parseInt(fromSplit[1].trim()) > 12
+      ) {
+        return interaction.send(
+          new ErrorEmbed(`Invalid amount of months: \`${fromSplit[1].trim()}\``)
+        );
+      } else {
+        month = Number.parseInt(fromSplit[1].trim());
+      }
+      if (
+        !isNormalInteger(fromSplit[2] || "asdf") ||
+        !Number.parseInt(fromSplit[2].trim())
+      ) {
+        year = new Date().getFullYear();
+      } else {
+        year = Number.parseInt(fromSplit[2].trim());
+      }
+      const date = new Date();
+      date.setDate(day);
+      date.setMonth(month);
+      date.setFullYear(year);
+      from = date.getTime();
+      description += `From: \`${day}-${month}-${year}\`\n`;
+    }
+    if (untilRaw) {
+      let day: number;
+      let month: number;
+      let year: number;
+      const untilSplit = untilRaw.split(/(?:-|\/|\.)/gi);
+      if (
+        !isNormalInteger(untilSplit[0] || "asdf") ||
+        Number.parseInt(untilSplit[0].trim()) > 31
+      ) {
+        return interaction.send(
+          new ErrorEmbed(`Invalid amount of days: \`${untilSplit[0].trim()}\``)
+        );
+      } else {
+        day = Number.parseInt(untilSplit[0].trim());
+      }
+      if (
+        !isNormalInteger(untilSplit[1 || "asdf"]) ||
+        Number.parseInt(untilSplit[1].trim()) > 12
+      ) {
+        return interaction.send(
+          new ErrorEmbed(
+            `Invalid amount of months: \`${untilSplit[1].trim()}\``
+          )
+        );
+      } else {
+        month = Number.parseInt(untilSplit[1].trim());
+      }
+      if (
+        !isNormalInteger(untilSplit[2] || "asdf") ||
+        !Number.parseInt(untilSplit[2].trim())
+      ) {
+        year = new Date().getFullYear();
+      } else {
+        year = Number.parseInt(untilSplit[2].trim());
+      }
+      const date = new Date();
+      date.setDate(day);
+      date.setMonth(month);
+      date.setFullYear(year);
+      until = date.getTime();
+      description += `Until: \`${day}-${month}-${year}\`\n`;
+    }
+
+    const url = await GenerateChart(interaction.guild, from, until);
+
+    const embed = new MessageEmbed()
+      .setTimestamp()
+      .setImage(url)
+      .setColor("RANDOM")
+      .setTitle(`Server chart for ${interaction.guild.name}`);
+    if (description.length > 3) {
+      embed.setDescription(description);
+    }
+    interaction.send(embed);
   }
 };
+export async function GenerateChart(
+  guild: Guild,
+  from?: number,
+  until?: number
+): Promise<string> {
+  try {
+    let join_dates: Array<number> = [];
+    const members = await guild.members.fetch();
 
+    members.forEach((member) => {
+      if (
+        !member.user.bot &&
+        (!from || (member.joinedTimestamp && member.joinedTimestamp > from)) &&
+        (!until || (member.joinedTimestamp && member.joinedTimestamp < until))
+      ) {
+        join_dates.push(
+          moment(
+            moment.utc(member.joinedAt).format("DD/MM/YYYY"),
+            "DD/MM/YYYY"
+          ).unix()
+        );
+      }
+    });
+    join_dates.sort();
+    let data = { [join_dates[0]]: 0 };
+    let nice_data: { [key: string]: number } = {};
+
+    let last_date = join_dates[0];
+    join_dates.forEach((join_date) => {
+      if (data[join_date]) {
+        data[join_date] = data[join_date] + 1;
+      } else {
+        data[join_date] = data[last_date] + 1;
+
+        //convert the unix time of the last to dd/mm/yyyy
+        nice_data[moment.utc(last_date * 1000).format("YYYY/MM/DD")] =
+          data[last_date];
+      }
+      last_date = join_date;
+    });
+
+    let nice_array: Array<{
+      users: number;
+      date: string;
+      distance: number;
+    }> = [];
+    let proximitys: Array<number> = [];
+    Object.keys(nice_data).forEach((date, index, array) => {
+      let distance = -1;
+      if (index !== 0 && index !== array.length - 1) {
+        const location = Math.round(new Date(date).valueOf() / 1000);
+        const distance_before =
+          location - Math.round(new Date(array[index - 1]).valueOf() / 1000);
+
+        const distance_after =
+          Math.round(new Date(array[index + 1]).valueOf() / 1000) - location;
+        distance = (distance_before ^ 2) + (distance_after ^ 2);
+        proximitys.push(distance);
+      }
+
+      nice_array.push({
+        users: nice_data[date],
+        date: date,
+        distance: distance,
+      });
+    });
+    if (max_graph_item - nice_array.length < 0) {
+      proximitys = proximitys.sort((a, b) => a - b);
+      let toRemove = proximitys.slice(0, nice_array.length - max_graph_item);
+      nice_array = nice_array.filter((obj) => !toRemove.includes(obj.distance));
+    }
+
+    //var canvas = createCanvas(600,400)//600, 400)
+    //var ctx = canvas.getContext('2d')
+    //console.log(JSON.stringify(ctx))
+    const myChartOptions = {
+      type: "line",
+
+      data: {
+        labels: nice_array.map((obj) => obj.date),
+        datasets: [
+          {
+            label: "Members over time",
+            //color: 'rgba(255, 255, 255, 1)',
+            data: nice_array.map((obj) => obj.users),
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        legend: {
+          labels: {
+            fontColor: "White",
+          },
+        },
+        scales: {
+          xAxes: [
+            {
+              type: "time",
+              ticks: {
+                fontColor: "white",
+              },
+            },
+          ],
+          yAxes: [
+            {
+              ticks: {
+                fontColor: "white",
+              },
+            },
+          ],
+        },
+      },
+    };
+    const chart = new QuickChart();
+    chart
+      .setConfig(myChartOptions)
+      .setBackgroundColor("transparent")
+      .setWidth(500)
+      .setHeight(300)
+      .setDevicePixelRatio(10);
+    const url = await chart.getShortUrl();
+
+    return url;
+  } catch (err) {
+    //Sentry.captureException(err);
+    console.error("An error has occurred with the server chart");
+    console.error(err);
+
+    throw err;
+  }
+}
 function getColorCode() {
   var makeColorCode = "0123456789ABCDEF";
   var code = "#";
@@ -424,7 +557,15 @@ function getColorCode() {
   }
   return code;
 }
-
+function isNormalInteger(str: string) {
+  str = str.trim();
+  if (!str) {
+    return false;
+  }
+  str = str.replace(/^0+/, "") || "0";
+  var n = Math.floor(Number(str));
+  return n !== Infinity && String(n) === str && n >= 0;
+}
 export const config: FishyCommandConfig = {
   name: "info",
   bot_needed: true,
@@ -477,6 +618,23 @@ export const config: FishyCommandConfig = {
             name: "value",
             description: "The role to get info about",
             type: ApplicationCommandOptionType.ROLE,
+          },
+        ],
+      },
+      {
+        name: "chart",
+        description: "Generate a growth chart for ur server",
+        type: ApplicationCommandOptionType.SUB_COMMAND,
+        options: [
+          {
+            name: "from",
+            description: "When to start, in DD-MM-YYY",
+            type: ApplicationCommandOptionType.STRING,
+          },
+          {
+            name: "until",
+            description: "When to stop, in DD-MM-YYY",
+            type: ApplicationCommandOptionType.STRING,
           },
         ],
       },

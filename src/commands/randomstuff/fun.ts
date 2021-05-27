@@ -120,7 +120,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       embed.setTimestamp();
       interaction.send(embed);
     } else if (type === "8ball") {
-      interaction.send("no"); // TODO: add this
+      interaction.send("no");
     }
   } else if (main_command === "fact") {
     let res = await axios.get(
