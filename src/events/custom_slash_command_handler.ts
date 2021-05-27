@@ -9,6 +9,7 @@ export async function run(
   client: FishyClient,
   raw_interaction: raw_received_interaction
 ) {
+  if (raw_interaction.type !== 2) return;
   if (client.commands.has(raw_interaction.data?.name || "")) return;
 
   const interaction = new Interaction(client, raw_interaction);
@@ -17,7 +18,10 @@ export async function run(
     const custom_command: custom_slash_commands =
       db_guild.custom_slash_commands[interaction.data.name];
     try {
-      let text = ParseFishyCode(custom_command.code || "BUH", interaction);
+      let text = await ParseFishyCode(
+        custom_command.code || "BUH",
+        interaction
+      );
       if (text && typeof text == "string") {
         if (text.length > 1990) throw new Error("To long a response");
         else interaction.send(text);
