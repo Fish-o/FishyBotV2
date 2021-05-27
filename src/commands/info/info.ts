@@ -111,6 +111,13 @@ export const run: FishyCommandCode = async (client, interaction) => {
     const components: ComponentButton[] = [];
     components.push({
       type: ComponentType.Button,
+      label: "Mute",
+      custom_id: `mute_${member.id}`,
+      style: ComponentStyle.Primary,
+      disabled: !interaction.member?.permissions.has("MANAGE_MESSAGES"),
+    });
+    components.push({
+      type: ComponentType.Button,
       label: "Kick",
       custom_id: `kick_${member.id}`,
       style: ComponentStyle.Secondary,
@@ -126,6 +133,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       disabled:
         !interaction.member?.permissions.has("BAN_MEMBERS") || !member.bannable,
     });
+
     interaction.send(embed, {
       components: [{ components: components, type: ComponentType.ActionRow }],
     });

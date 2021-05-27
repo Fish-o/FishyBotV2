@@ -6,9 +6,15 @@ import {
   TextChannel,
   Message,
   BitFieldResolvable,
+  User,
+  GuildMember,
 } from "discord.js";
+import ButtonInteraction from "fishy-bot-framework/lib/structures/ButtonInteraction";
+import { Interaction } from "fishy-bot-framework/lib/structures/Interaction";
 import {
   ApplicationCommandOptionType,
+  ComponentStyle,
+  ComponentType,
   FishyCommandCode,
   FishyCommandConfig,
 } from "fishy-bot-framework/lib/types";
@@ -27,6 +33,131 @@ const overwrites: PermissionOverwriteOption = {
 
 let time_cache = new Collection<string, number>();
 const ttl = 12 * 60 * 60 * 1000;
+export const muteMember = async (
+  interaction: Interaction | ButtonInteraction,
+  user_id: string,
+  time: number | undefined
+) => {
+  if (!interaction.guild) return;
+  let muteRole = interaction.guild.roles.cache.find(
+    (role) => role.name === mute_role_name
+  )!;
+  if (!muteRole) {
+    muteRole = await interaction.guild.roles.create({
+      data: {
+        name: mute_role_name,
+        color: "#707070",
+      },
+      reason: "Used for muting people",
+    });
+  }
+  let new_member = await interaction.guild.members.fetch(user_id);
+  new_member.roles.add(muteRole);
+
+  const reason =
+    interaction.data.options.find((arg) => arg.name == "reason")?.value ||
+    "No reason provided";
+  const embed = new MessageEmbed();
+  embed.setTimestamp();
+  embed.setDescription(
+    `Muted: ${new_member}\nMuted by: ${interaction.member}\nTime: \`${
+      time && time > 10 ? ms(time) : "Indefinitely"
+    }\`\nReason: \`${reason}\``
+  );
+  embed.setTitle(`Successfully muted member ${new_member.displayName}`);
+  embed.setFooter(`/un mute member: ${new_member.displayName}`);
+  interaction.send(embed, {
+    components: [
+      {
+        components: [
+          {
+            type: ComponentType.Button,
+            label: "Unmute",
+            custom_id: `unmute_${new_member.id}`,
+            style: ComponentStyle.Success,
+          },
+        ],
+        type: ComponentType.ActionRow,
+      },
+    ],
+  });
+  if (time && time > 10) {
+    setTimeout(async () => {
+      unMuteMember(interaction, new_member.id, new_member, time, true);
+    }, time);
+  }
+
+  if (
+    !time_cache.has(interaction.guild.id) ||
+    time_cache.get(interaction.guild.id)! + ttl < Date.now()
+  ) {
+    time_cache.set(interaction.guild.id, Date.now());
+    interaction.guild.channels.cache.forEach(async (channel, id) => {
+      if (!channel.permissionsFor(muteRole.id)) {
+        await channel.updateOverwrite(muteRole.id, overwrites);
+      }
+    });
+  }
+};
+export const unMuteMember = async (
+  interaction: Interaction | ButtonInteraction,
+  user_id: string,
+  new_member?: GuildMember,
+  time?: number,
+  send_channel?: boolean
+) => {
+  if (!interaction.guild) return;
+  new_member = new_member || (await interaction.guild.members.fetch(user_id));
+
+  try {
+    let muteRole = interaction.guild.roles.cache.find(
+      (role) => role.name === mute_role_name
+    );
+    if (!muteRole) return;
+    if (interaction.channel?.isText()) {
+      let newer_member = await interaction.guild!.members.fetch(new_member.id);
+      if (!newer_member.roles.cache.has(muteRole.id)) {
+        return;
+      }
+      await newer_member.roles.remove(muteRole);
+      if (send_channel) {
+        interaction.channel.send(
+          `${new_member} has been unmuted, after being muted for ${ms(
+            time || 0
+          )} by ${interaction.member}`
+        );
+      } else {
+        interaction.send(
+          new ErrorEmbed(
+            `Successfully unmuted ${new_member.user.tag}!`
+          ).setColor("GREEN")
+        );
+      }
+    }
+  } catch (err) {
+    if (send_channel) {
+      if (interaction.channel?.isText()) {
+        interaction.channel.send(
+          new ErrorEmbed(
+            `Failed to unmute ${new_member.displayName}!`,
+            `Failed to unmute the member: ${new_member}, after being muted for ${ms(
+              time || 0
+            )}`
+          )
+        );
+      }
+    } else {
+      interaction.send(
+        new ErrorEmbed(
+          `Failed to unmute ${new_member.displayName}!`,
+          `Failed to unmute the member: ${new_member}, after being muted for ${ms(
+            time || 0
+          )}`
+        )
+      );
+    }
+  }
+};
 export const run: FishyCommandCode = async (client, interaction) => {
   if (!interaction.guild) return;
   if (!interaction.mentions?.members?.keyArray()?.[0]) {
@@ -39,86 +170,12 @@ export const run: FishyCommandCode = async (client, interaction) => {
   if (member_perms.has("MANAGE_MESSAGES") || !user) {
     return interaction.send(new ErrorEmbed("Unable to mute this member"));
   }
-  let muterole = interaction.guild.roles.cache.find(
-    (role) => role.name === mute_role_name
-  )!;
-  if (!muterole) {
-    muterole = await interaction.guild.roles.create({
-      data: {
-        name: mute_role_name,
-        color: "#707070",
-      },
-      reason: "Used for muting people",
-    });
-  }
-  let new_member = await interaction.guild.members.fetch(user.id);
-  new_member.roles.add(muterole);
-
-  const time = interaction.data.options.find((arg) => arg.name == "time")
-    ?.value;
-  if (typeof time !== "string" && typeof time !== "undefined")
-    return interaction.sendSilent("Im to tired for this");
-  const miliseconds = time ? ms(time) : undefined;
-  const reason =
-    interaction.data.options.find((arg) => arg.name == "reason")?.value ||
-    "No reason provided";
-  const embed = new MessageEmbed();
-  embed.setTimestamp();
-  embed.setDescription(
-    `Muted: ${new_member}\nMuted by: ${interaction.member}\nTime: \`${
-      time && miliseconds && miliseconds > 10 ? ms(miliseconds) : "Indefinitely"
-    }\`\nReason: \`${reason}\``
-  );
-  embed.setTitle(`Succesfully muted member ${new_member.displayName}`);
-  embed.setFooter(`/un mute member: ${new_member.displayName}`);
-  interaction.send(embed);
-  if (time && miliseconds && miliseconds > 10) {
-    setTimeout(async () => {
-      try {
-        if (interaction.channel?.isText()) {
-          let newer_member = await interaction.guild!.members.fetch(
-            new_member.id
-          );
-          if (!newer_member.roles.cache.has(muterole.id)) {
-            return interaction.channel.send(
-              `Tried to unmute ${new_member}, but they already seem to be unmuted!`
-            );
-          }
-          await newer_member.roles.remove(muterole);
-          interaction.channel.send(
-            `${new_member} has been unmuted, after being muted for ${ms(
-              miliseconds || 0
-            )} by ${interaction.member}`
-          );
-          // TODO: fix this
-          // interaction.channel.send()
-        }
-      } catch (err) {
-        if (interaction.channel?.isText()) {
-          interaction.channel.send(
-            new ErrorEmbed(
-              `Failed to unmute ${new_member.displayName}!`,
-              `Failed to unmute the member: ${new_member}, after being muted for ${ms(
-                miliseconds || 0
-              )}`
-            )
-          );
-        }
-      }
-    }, miliseconds);
-  }
-
-  if (
-    !time_cache.has(interaction.guild.id) ||
-    time_cache.get(interaction.guild.id)! + ttl < Date.now()
-  ) {
-    time_cache.set(interaction.guild.id, Date.now());
-    interaction.guild.channels.cache.forEach(async (channel, id) => {
-      if (!channel.permissionsFor(muterole.id)) {
-        await channel.updateOverwrite(muterole.id, overwrites);
-      }
-    });
-  }
+  const rawTime = interaction.data.options.find(
+    (arg) => arg.name == "time"
+  )?.value;
+  let time;
+  if (typeof rawTime == "string") time = ms(rawTime);
+  await muteMember(interaction, user.id, time);
 };
 
 export const config: FishyCommandConfig = {
