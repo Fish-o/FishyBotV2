@@ -364,7 +364,7 @@ export const run: FishyCommandCode = async function (client, interaction) {
     let text = scrappedVods.map((scrap) => {
       return `[${scrap.against}](${scrap.link})`;
     });
-    if (text.join("/n").length < 1020) {
+    if (text.join("\n").length < 1020) {
       embed.addFields({
         name: "Vods",
         value: text.join("/n"),
