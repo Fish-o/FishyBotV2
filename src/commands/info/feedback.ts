@@ -89,12 +89,12 @@ ${text}
 };
 
 export const config: FishyCommandConfig = {
-  name: "feedback",
+  name: "contact",
   bot_needed: true,
   user_perms: ["MANAGE_MESSAGES"],
   interaction_options: {
-    name: "feedback",
-    description: "Give feedback about the bot",
+    name: "contact",
+    description: "Contact the bots developer",
     options: [
       {
         name: "feature",
