@@ -21,7 +21,7 @@ import {
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 import ms from "ms";
 
-export const mute_role_name = "Muted";
+export const mute_role_name = "MUTED";
 const overwrites: PermissionOverwriteOption = {
   SEND_MESSAGES: false,
   ADD_REACTIONS: false,
@@ -39,18 +39,32 @@ export const muteMember = async (
   time: number | undefined
 ) => {
   if (!interaction.guild) return;
-  let muteRole = interaction.guild.roles.cache.find(
-    (role) => role.name === mute_role_name
-  )!;
+  let muteRole =
+    interaction.guild.roles.cache.find(
+      (role) => role.name === mute_role_name
+    ) ||
+    interaction.guild.roles.cache.find(
+      (role) => role.name.toLowerCase() === mute_role_name.toLowerCase()
+    )!;
   if (!muteRole) {
     muteRole = await interaction.guild.roles.create({
       data: {
         name: mute_role_name,
         color: "#707070",
+        permissions: [],
       },
       reason: "Used for muting people",
     });
+
+    for (let [id, channel] of interaction.guild.channels.cache) {
+      channel.updateOverwrite(muteRole.id, {
+        SEND_MESSAGES: false,
+        SEND_TTS_MESSAGES: false,
+        SPEAK: false,
+      });
+    }
   }
+
   let new_member = await interaction.guild.members.fetch(user_id);
   new_member.roles.add(muteRole);
 
