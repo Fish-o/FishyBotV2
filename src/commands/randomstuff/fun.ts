@@ -2,6 +2,8 @@ import axios from "axios";
 import { Message, MessageEmbed } from "discord.js";
 import {
   ApplicationCommandOptionType,
+  ComponentStyle,
+  ComponentType,
   FishyCommandCode,
   FishyCommandConfig,
 } from "fishy-bot-framework/lib/types";
@@ -127,6 +129,22 @@ export const run: FishyCommandCode = async (client, interaction) => {
       `https://uselessfacts.jsph.pl/random.json?language=en`
     );
     interaction.send(res.data.text);
+  } else if (main_command === "dont-run-me") {
+    interaction.send("For real now, DON'T PRESS THIS BUTTON", {
+      components: [
+        {
+          type: ComponentType.ActionRow,
+          components: [
+            {
+              type: ComponentType.Button,
+              style: ComponentStyle.Danger,
+              label: "DONT CLICK",
+              custom_id: "selfyeet",
+            },
+          ],
+        },
+      ],
+    });
   }
 };
 
@@ -194,7 +212,7 @@ export const config: FishyCommandConfig = {
             type: ApplicationCommandOptionType.SUB_COMMAND,
             options: [
               {
-                name: "Question",
+                name: "question",
                 description: "The question to to the 8ball",
                 type: ApplicationCommandOptionType.STRING,
                 required: true,
@@ -206,6 +224,11 @@ export const config: FishyCommandConfig = {
       {
         name: "fact",
         description: "(might not actually be true) :D",
+        type: ApplicationCommandOptionType.SUB_COMMAND,
+      },
+      {
+        name: "dont-run-me",
+        description: "DONT RUN ME!",
         type: ApplicationCommandOptionType.SUB_COMMAND,
       },
     ],
