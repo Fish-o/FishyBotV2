@@ -1,14 +1,10 @@
 import axios from "axios";
 import { Interaction } from "fishy-bot-framework/lib/structures/Interaction";
-import { InteractionDataOption } from "fishy-bot-framework/lib/structures/InteractionOptions";
 import { ApplicationCommandCompare } from "fishy-bot-framework/lib/utils/ApplicationCommandCompare";
 import {
   ApplicationCommand,
   ApplicationCommandOption,
   ApplicationCommandOptionType,
-  InteractionResponse,
-  raw_interaction,
-  raw_received_interaction,
 } from "fishy-bot-framework/lib/types";
 
 function randomIntFromInterval(min: number, max: number) {
@@ -21,6 +17,7 @@ interface custom_member {
   id: string;
   tag: string;
   displayname: string;
+  dm: (text: string) => Promise<boolean>;
 }
 interface arg_interface {
   string: { [var_name: string]: string | undefined } | undefined;
@@ -36,7 +33,12 @@ export interface custom_slash_commands {
   code?: string;
 }
 
-export function ParseFishyCode(code: string, interaction: Interaction): string {
+// TODO: add server.membercount
+
+export async function ParseFishyCode(
+  code: string,
+  interaction: Interaction
+): Promise<string> {
   const interaction_options = interaction.raw_interaction;
   let ints: { [var_name: string]: number } | undefined = {};
   let strings: { [var_name: string]: string } | undefined = {};
@@ -85,6 +87,7 @@ export function ParseFishyCode(code: string, interaction: Interaction): string {
               opt.value
             );
             if (!interaction_member || !interaction_user) return undefined;
+
             const member_obj: custom_member = {
               id: opt.value,
               mention: `<@${opt.value}>`,
@@ -92,6 +95,20 @@ export function ParseFishyCode(code: string, interaction: Interaction): string {
               displayname: `${
                 interaction_member.nick || interaction_user.username
               }`,
+              dm: async (text: string) => {
+                const user = interaction.guild?.members.cache.get(
+                  interaction_user.id
+                )?.user;
+                if (!user) return false;
+                else {
+                  try {
+                    let res = await user.send(text);
+                    return true;
+                  } catch (err) {
+                    return false;
+                  } //TODO: check if dmAble
+                }
+              },
             };
             return { [opt.name || "asdfasdf"]: member_obj };
           }
@@ -113,7 +130,10 @@ export function ParseFishyCode(code: string, interaction: Interaction): string {
   let last_match = 0;
 
   // Inserting variables
-  vars_matched.forEach((variable) => {
+  // TODO: change to for loop
+  let failed = false;
+  for (let variable of vars_matched) {
+    if (failed) continue;
     let place = code.indexOf(variable[0], last_match);
     last_match = place + 3;
     let type = types.find((type) => variable[1] === type);
@@ -124,30 +144,118 @@ export function ParseFishyCode(code: string, interaction: Interaction): string {
       !var_name ||
       typeof var_name !== "string"
     )
-      return;
+      continue;
     let answer = "";
-    if (type !== "member") {
-      let type_obj = args[type];
-      if (!type_obj) return;
-      let found: undefined | string | number = type_obj[var_name];
-      if (found) {
-        console.log(found);
-        if (typeof found !== "string") found = found.toString();
-        answer = found;
+    code: {
+      if (type !== "member") {
+        let type_obj = args[type];
+        if (!type_obj) continue;
+        let found: undefined | string | number = type_obj[var_name];
+        if (found) {
+          console.log(found);
+          if (typeof found !== "string") found = found.toString();
+          answer = found;
+        }
+        answer = `**variable ${var_name} failed **`;
+        break code;
       }
-    } else {
       const member_obj = args[type]?.[var_name.split(".")[0]];
-      if (!member_obj) answer = "this went wrong!";
-      else if (!variable[2].trim().includes(".")) answer = member_obj.mention;
-      else {
-        let method = variable[2]
-          .trim()
-          .slice(variable[2].trim().indexOf(".") + 1);
-        if (!Object.keys(member_obj).includes(method))
-          answer = `\`method ${method} doesnt exist\``;
-        else {
-          // @ts-ignore
-          answer = member_obj[method] || "welp";
+      if (!member_obj) {
+        answer = `** variable ${var_name} failed **`;
+        break code;
+      }
+
+      if (!variable[2].trim().includes(".")) {
+        answer = member_obj.mention;
+        break code;
+      }
+
+      type data_key = keyof typeof member_obj;
+      let rawMethod: any = variable[2]
+        .trim()
+        .slice(variable[2].trim().indexOf(".") + 1);
+      const method: data_key = rawMethod;
+      //console.log("METHTH");
+      //console.log(method); // kick(u smelly)
+      if (member_obj.hasOwnProperty(method)) {
+        const property = member_obj[method];
+        if (typeof property === "string") {
+          answer = property;
+        }
+      } else {
+        const functionTextArray = variable[2].trim().split(".");
+        functionTextArray.shift();
+        const functionText = functionTextArray.join(".").trim(); // Example dm(BLAHHHH) or kick(You are stupid)
+        const command = functionText.split("(").shift(); // dm or kick
+        let args: string[] = functionText
+          .slice(0, functionText.length - 1)
+          .split("(")
+          .slice(1)
+          .join("(")
+          .split("|"); // BlAHHHH or You are stupid
+        //console.log("EAJHFDJDHF");
+        //console.log(functionText); //kick(u smelly)
+        //console.log(command); // kick
+        //console.log(args); // ['u smelly']
+        if (!functionText || !command) {
+          answer = `**${functionText || variable[2]} is invalid**`;
+          break code;
+        }
+        if (command === "dm") {
+          const message = args[0];
+          if (typeof message === "string") {
+            let res = await member_obj.dm(message);
+            if (!res) {
+              answer = `** FAILED TO DM ${member_obj.tag} **`;
+              failed = true;
+            }
+          }
+        } else if (command === "kick") {
+          const member = await interaction.guild?.members.fetch(member_obj.id);
+          if (!member) {
+            answer = `** COULD NOT FETCH MEMBER '${member_obj.tag}' **`;
+            failed = true;
+            break code;
+          }
+          if (!member.kickable) {
+            answer = `** COULD NOT KICK MEMBER '${member_obj.tag}' **`;
+            failed = true;
+            break code;
+          }
+          let reason = args[0];
+          if (typeof reason !== "string") reason = "custom command ran";
+          try {
+            await member.kick(reason);
+          } catch (err) {
+            console.error("Error in custom command kick");
+            console.error(err);
+            answer = `** COULD NOT KICK MEMBER '${member_obj.tag}' **`;
+            failed = true;
+            break code;
+          }
+        } else if (command === "ban") {
+          const member = await interaction.guild?.members.fetch(member_obj.id);
+          if (!member) {
+            answer = `** COULD NOT FETCH MEMBER '${member_obj.tag}' **`;
+            failed = true;
+            break code;
+          }
+          if (!member.bannable) {
+            answer = `** COULD NOT BAN MEMBER '${member_obj.tag}' **`;
+            failed = true;
+            break code;
+          }
+          let reason = args[0];
+          if (typeof reason !== "string") reason = "custom command ran";
+          try {
+            await member.ban({ reason: reason });
+          } catch (err) {
+            console.error("Error in custom command ban");
+            console.error(err);
+            answer = `** COULD NOT BAN MEMBER '${member_obj.tag}' **`;
+            failed = true;
+            break code;
+          }
         }
       }
     }
@@ -155,11 +263,12 @@ export function ParseFishyCode(code: string, interaction: Interaction): string {
       code.slice(0, place) +
       answer +
       code.slice(place + variable[0].length + 2);
-  });
+    if (failed) break;
+  }
 
   //
   const func_matched = [...code.matchAll(func_regexp)];
-  func_matched.forEach((func) => {
+  for (let func of func_matched) {
     const raw_string = func[0];
     const method = func[1].trim();
     const args = func[2].trim().slice(0, func[2].trim().length - 1);
@@ -188,7 +297,7 @@ export function ParseFishyCode(code: string, interaction: Interaction): string {
     }
     code =
       code.slice(0, index) + answer + code.slice(index + raw_string.length + 2);
-  });
+  }
   return code;
 }
 
