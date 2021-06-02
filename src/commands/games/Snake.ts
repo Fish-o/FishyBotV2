@@ -1,13 +1,13 @@
 import { MessageEmbed } from "discord.js";
 import {
+  ApplicationCommandOptionType,
   ComponentActionRow,
   ComponentStyle,
   ComponentType,
   FishyCommandCode,
   FishyCommandConfig,
 } from "fishy-bot-framework/lib/types";
-const width = 10;
-const height = 10;
+import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
 enum fields {
   BG = "🟩",
@@ -16,6 +16,8 @@ enum fields {
   BODY = "🟤",
   FOOD = "🍎",
 }
+const base_width = 10;
+const base_height = 10;
 
 function Components(
   direction: "LEFT" | "RIGHT" | "UP" | "DOWN" | string
@@ -128,8 +130,8 @@ function generateFood(
   height: number
 ): [number, number] {
   const allowed: [number, number][] = [];
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
+  for (let x = 1; x < width - 1; x++) {
+    for (let y = 1; y < height - 1; y++) {
       let valid = true;
       if (head[0] == x && head[1] == y) valid = false;
       for (let part of snake) {
@@ -157,6 +159,24 @@ export function PressButton(
 }
 
 export const run: FishyCommandCode = async (client, interaction) => {
+  let width = base_width;
+  let height = base_height;
+
+  for (let option of interaction.data.options) {
+    if (option.name === "height" && typeof option.value === "number")
+      height = option.value;
+    if (option.name === "width" && typeof option.value === "number")
+      width = option.value;
+  }
+  if (height * width > 800 || height < 4 || width < 4) {
+    return interaction.send(
+      new ErrorEmbed(
+        "Invalid board size",
+        "The board can not contain more than 800 units or be less then 4 units tall/wide"
+      )
+    );
+  }
+
   const snake: [number, number][] = [];
   let head: [number, number] = [Math.floor(width / 2), Math.floor(height / 2)];
   let button = "LEFT";
@@ -218,6 +238,13 @@ export const run: FishyCommandCode = async (client, interaction) => {
       length++;
       eating = true;
       const newFood = generateFood(snake, head, width, height);
+
+      if (!newFood?.[0]) {
+        gameEmbed.setTitle("YOU WON!, score: " + length).setColor("YELLOW");
+        interaction.edit(gameEmbed, { components: [] });
+        clearInterval(gameLoop);
+        return;
+      }
       food[0] = newFood[0];
       food[1] = newFood[1];
     }
@@ -235,5 +262,17 @@ export const config: FishyCommandConfig = {
   interaction_options: {
     name: "snake",
     description: "Epic snake game of doom",
+    options: [
+      {
+        name: "height",
+        description: "The height of the board",
+        type: ApplicationCommandOptionType.INTEGER,
+      },
+      {
+        name: "width",
+        description: "The height of the board",
+        type: ApplicationCommandOptionType.INTEGER,
+      },
+    ],
   },
 };
