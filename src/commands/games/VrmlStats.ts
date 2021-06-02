@@ -432,13 +432,12 @@ export const run: FishyCommandCode = async function (client, interaction) {
   // Add timestamp
   embed.setTimestamp();
   console.log(embed);
-  if (!interaction.channel?.isText()) return;
-  interaction.channel.send(embed);
-  // if (msg_sent) {
-  //   interaction.edit(embed);
-  // } else {
-  //   interaction.send(embed);
-  // }
+
+  if (msg_sent) {
+    interaction.edit(embed);
+  } else {
+    interaction.send(embed);
+  }
 };
 
 export const config: FishyCommandConfig = {
