@@ -7,6 +7,8 @@ import {
   FishyCommandConfig,
   InteractionApplicationCommandCallbackData,
 } from "fishy-bot-framework/lib/types";
+import { Decimal } from "decimal.js";
+
 const splice = function (
   string: string,
   idx: number,
@@ -15,7 +17,7 @@ const splice = function (
 ) {
   return string.slice(0, idx) + str + string.slice(idx + Math.abs(rem));
 };
-export function parseCalculate(input: string): number | undefined | string {
+export function parseCalculate(input: string): undefined | string {
   const input2 = input.replace("×", "*");
   let str = input2.replace(/[^-()\d/*+.\^]/g, "");
   let regexOpen = /[\d\)]\(/g;
@@ -30,12 +32,17 @@ export function parseCalculate(input: string): number | undefined | string {
     str = splice(str, matchClose.index + 1, 0, "*");
   }
 
+  if (!str || str.length < 1) return "NaN";
+
   try {
     let res: number = eval(str);
-    return Math.round(res * (10 ^ 7)) / (10 ^ 7);
+    Decimal.set({ precision: 5 });
+    let decimal = new Decimal(res);
+
+    return decimal.toString();
   } catch (err) {
-    return `Error\n${err}`;
     console.error(err);
+    return `Error\n${err}`;
   }
 }
 
