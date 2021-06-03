@@ -18,7 +18,7 @@ const splice = function (
   return string.slice(0, idx) + str + string.slice(idx + Math.abs(rem));
 };
 export function parseCalculate(input: string): undefined | string {
-  const input2 = input.replace("×", "*");
+  const input2 = input.replace(/×/g, "*");
   let str = input2.replace(/[^-()\d/*+.\^]/g, "");
 
   if (!str || str.length < 1) return "NaN";
@@ -176,7 +176,7 @@ ${calculation} = ${res}
         {
           style: ComponentStyle.Secondary,
           type: ComponentType.Button,
-          custom_id: `calc_${memberID}00`,
+          custom_id: `calc_${memberID}|00`,
           disabled: disableComponents,
           label: "00",
         },
