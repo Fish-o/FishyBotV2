@@ -55,6 +55,7 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
     let res = parseCalculate(calculation);
     calculation = `${res ?? calculation}`;
   }
+  calculation = calculation.replace("××", "^");
   Calculations.set(memberID, {
     calculation: calculation,
     started: calculator.started,

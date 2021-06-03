@@ -8,7 +8,7 @@ import {
   InteractionApplicationCommandCallbackData,
 } from "fishy-bot-framework/lib/types";
 import { Decimal } from "decimal.js";
-
+import Mea from "math-expression-evaluator";
 const splice = function (
   string: string,
   idx: number,
@@ -20,29 +20,15 @@ const splice = function (
 export function parseCalculate(input: string): undefined | string {
   const input2 = input.replace("×", "*");
   let str = input2.replace(/[^-()\d/*+.\^]/g, "");
-  let regexOpen = /[\d\)]\(/g;
-  let matchOpen;
-  while ((matchOpen = regexOpen.exec(str)) != null) {
-    str = splice(str, matchOpen.index + 1, 0, "*");
-  }
-
-  let regexClose = /\)[\d\(]/g;
-  let matchClose;
-  while ((matchClose = regexClose.exec(str)) != null) {
-    str = splice(str, matchClose.index + 1, 0, "*");
-  }
 
   if (!str || str.length < 1) return "NaN";
 
   try {
-    let res: number = eval(str);
-    Decimal.set({ precision: 5 });
-    let decimal = new Decimal(res);
-
-    return decimal.toString();
+    let res = Mea.eval(str);
+    return res;
   } catch (err) {
     console.error(err);
-    return `Error\n${err}`;
+    return `Error\n${err.message}`;
   }
 }
 
