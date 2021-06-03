@@ -15,6 +15,7 @@
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.5",
     "city-timezones": "^1.2.0",
+    "decimal.js": "^10.2.1",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "fishy-bot-framework": "^0.2.4",
