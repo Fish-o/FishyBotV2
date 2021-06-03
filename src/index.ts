@@ -11,7 +11,7 @@ require("dotenv").config({});
     db_uri: process.env.DB_URI!,
     guild_model: GuildModel,
     disable_msg_notfound: true,
-
+    dev_guild_id: "729791412459143278",
     info_channel_id: "838138764211126294",
     disable_load_on_construct: true,
   });
@@ -26,7 +26,6 @@ require("dotenv").config({});
 })();
 
 // Custom commands
-// TODO: Welcome screen
 // TODO: Roleperms
 
 // Database import
