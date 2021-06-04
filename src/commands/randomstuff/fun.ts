@@ -152,7 +152,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
     } 
     if(!color.match(/^#(?:[0-9a-f]{3}){1,2}$/i)) return interaction.send(new ErrorEmbed("Invalid color","Plaese emter a valid hex code (#111111 for example)"))
 
-    return interaction.send(new MessageEmbed().setColor(color).setTitle(color).setImage(`https://singlecolorimage.com/get/${color.substr(0, color.length-1)}/400x400`))
+    return interaction.send(new MessageEmbed().setColor(color).setTitle(color).setImage(`https://singlecolorimage.com/get/${color.substr(1, color.length)}/400x400`))
 
 
   }
