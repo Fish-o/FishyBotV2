@@ -7,7 +7,7 @@ import {
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
 export const run: FishyButtonCommandCode = async (client, interaction) => {
-  if (Math.random() > 0.5 || !interaction.member?.kickable) {
+  if (Math.random() > 0.02 || !interaction.member?.kickable) {
     interaction.send(`${interaction.member} pressed me :(`);
   } else {
     try {
@@ -25,7 +25,10 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
         return interaction.send(`${interaction.member} pressed me :(`);
       }
 
-      interaction.member.user.send(`Don't press me again >:(\n${invite.url}`);
+      await interaction.member.user.send(
+        `Don't press me again >:(\n${invite.url}`
+      );
+
       await interaction.member.kick(
         `roles: '${interaction.member.roles.cache
           .map((role) => role.name)
@@ -34,6 +37,7 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
       interaction.send("THAT WHAT YOU GET FOR PRESSING ME! ");
     } catch (err) {
       interaction.send(`${interaction.member} pressed me :(`);
+      console.log(err);
     }
   }
 };
