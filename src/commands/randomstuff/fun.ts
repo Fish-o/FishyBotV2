@@ -145,6 +145,16 @@ export const run: FishyCommandCode = async (client, interaction) => {
         },
       ],
     });
+  } else if (main_command === "color"){
+    const color = interaction.data.options[0]?.options?.[0].value;
+    if(typeof color !== 'string'){
+      return interaction.send("Sorry i dont wanna work today")
+    } 
+    if(!color.match(/^#(?:[0-9a-f]{3}){1,2}$/i)) return interaction.send(new ErrorEmbed("Invalid color","Plaese emter a valid hex code (#111111 for example)"))
+
+    return interaction.send(new MessageEmbed().setColor(color).setTitle(color).setImage(`https://singlecolorimage.com/get/${color.substr(0, color.length-1)}/400x400`))
+
+
   }
 };
 
@@ -230,6 +240,19 @@ export const config: FishyCommandConfig = {
         name: "dont-run-me",
         description: "DONT RUN ME!",
         type: ApplicationCommandOptionType.SUB_COMMAND,
+      },
+      {
+        name: "color",
+        description: "Colors are nice!",
+        type: ApplicationCommandOptionType.SUB_COMMAND,
+        options:[
+          {
+            name:"color",
+            description:"The color to display",
+            type:ApplicationCommandOptionType.STRING,
+            required:true
+          }
+        ]
       },
     ],
   },
