@@ -252,6 +252,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
     // Update display
     const screen = renderScreen(snake, head, food, width, height, eating);
     gameEmbed.setDescription(screen);
+    gameEmbed.setTitle("SNAKE! score: " + length);
     interaction.edit(gameEmbed, { components: Components(button) });
   }, 1100);
 };
