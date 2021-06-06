@@ -26,7 +26,7 @@ const buttons = [
 ];
 
 export const run: FishyButtonCommandCode = async (client, interaction) => {
-  interaction.deferButton();
+  interaction.deferUpdateMessage();
   const custom_id = interaction.customID;
   const data = custom_id.slice(config.custom_id.length).split("|");
   const memberID = data.shift();

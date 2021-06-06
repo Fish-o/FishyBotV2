@@ -15,7 +15,7 @@ import {
 } from "./TicTacToe";
 
 export const run: FishyButtonCommandCode = async (client, interaction) => {
-  await interaction.deferButton();
+  await interaction.deferUpdateMessage();
 
   const custom_id = interaction.customID;
   const data = custom_id.slice(config.custom_id.length).split("|");
