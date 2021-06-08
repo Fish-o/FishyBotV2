@@ -2,12 +2,14 @@ import axios from "axios";
 import { Message, MessageEmbed } from "discord.js";
 import {
   ApplicationCommandOptionType,
+  ComponentActionRow,
   ComponentStyle,
   ComponentType,
   FishyCommandCode,
   FishyCommandConfig,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
+import { generateFunButtons } from "./funButtons";
 
 const DOG_API_URL = "https://api.thedogapi.com/";
 const CAT_API_URL = "https://api.thecatapi.com/";
@@ -129,32 +131,53 @@ export const run: FishyCommandCode = async (client, interaction) => {
       `https://uselessfacts.jsph.pl/random.json?language=en`
     );
     interaction.send(res.data.text);
-  } else if (main_command === "dont-run-me") {
-    interaction.send("For real now, DON'T PRESS THIS BUTTON", {
-      components: [
-        {
-          type: ComponentType.ActionRow,
-          components: [
-            {
-              type: ComponentType.Button,
-              style: ComponentStyle.Danger,
-              label: "DONT CLICK",
-              custom_id: "selfyeet",
-            },
-          ],
-        },
-      ],
-    });
-  } else if (main_command === "color"){
+  } else if (main_command === "self-yeet-button") {
+    interaction.send(
+      "Click here for a very small chance to maybe kick yourself",
+      {
+        components: [
+          {
+            type: ComponentType.ActionRow,
+            components: [
+              {
+                type: ComponentType.Button,
+                style: ComponentStyle.Danger,
+                label: "Yeet",
+                custom_id: "selfyeet",
+              },
+            ],
+          },
+        ],
+      }
+    );
+  } else if (main_command === "color") {
     const color = interaction.data.options[0]?.options?.[0].value;
-    if(typeof color !== 'string'){
-      return interaction.send("Sorry i dont wanna work today")
-    } 
-    if(!color.match(/^#(?:[0-9a-f]{3}){1,2}$/i)) return interaction.send(new ErrorEmbed("Invalid color","Plaese emter a valid hex code (#111111 for example)"))
+    if (typeof color !== "string") {
+      return interaction.send("Sorry i dont wanna work today");
+    }
+    if (!color.match(/^#(?:[0-9a-f]{3}){1,2}$/i))
+      return interaction.send(
+        new ErrorEmbed(
+          "Invalid color",
+          "Plaese emter a valid hex code (#111111 for example)"
+        )
+      );
 
-    return interaction.send(new MessageEmbed().setColor(color).setTitle(color).setImage(`https://singlecolorimage.com/get/${color.substr(1, color.length)}/400x400`))
-
-
+    return interaction.send(
+      new MessageEmbed()
+        .setColor(color)
+        .setTitle(color)
+        .setImage(
+          `https://singlecolorimage.com/get/${color.substr(
+            1,
+            color.length
+          )}/400x400`
+        )
+    );
+  } else if (main_command === "buttons") {
+    interaction.send("Enjoy these buttons", {
+      components: generateFunButtons(),
+    });
   }
 };
 
@@ -237,22 +260,27 @@ export const config: FishyCommandConfig = {
         type: ApplicationCommandOptionType.SUB_COMMAND,
       },
       {
-        name: "dont-run-me",
-        description: "DONT RUN ME!",
+        name: "self-yeet-button",
+        description: "Summon a button to yeet yourself!",
         type: ApplicationCommandOptionType.SUB_COMMAND,
       },
       {
         name: "color",
         description: "Colors are nice!",
         type: ApplicationCommandOptionType.SUB_COMMAND,
-        options:[
+        options: [
           {
-            name:"color",
-            description:"The color to display",
-            type:ApplicationCommandOptionType.STRING,
-            required:true
-          }
-        ]
+            name: "color",
+            description: "The color to display",
+            type: ApplicationCommandOptionType.STRING,
+            required: true,
+          },
+        ],
+      },
+      {
+        name: "buttons",
+        description: "Have some fun buttons!",
+        type: ApplicationCommandOptionType.SUB_COMMAND,
       },
     ],
   },
