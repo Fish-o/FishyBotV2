@@ -62,6 +62,7 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
   await interaction.deferUpdateMessage();
 
   let buttons = generateFunButtons(
+    // @ts-ignore
     interaction.message.components,
     [Number.parseInt(x), Number.parseInt(y)],
     Number.parseInt(prevStyle)
