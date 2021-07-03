@@ -24,6 +24,7 @@ const timezones: ApplicationCommandOptionChoice[] = [
   { name: "(CET)  Central European Time", value: "Europe/Paris" },
   { name: "(WAT)  West Africa Time", value: "Africa/Algiers" },
   { name: "(WET)  Western European Time", value: "Europe/Lisbon" },
+  { name: "(GMT)  Greenwich Mean Time", value: "Europe/London" },
   { name: "(UTC)  Coordinated Universal Time", value: "Etc/UTC" },
   { name: "(AST)  Atlantic Standard Time", value: "America/Blanc-Sablon" },
   { name: "(EST)  Eastern Standard Time", value: "America/New_York" },
