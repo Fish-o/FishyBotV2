@@ -11,6 +11,8 @@ import {
 } from "discord.js";
 import ButtonInteraction from "fishy-bot-framework/lib/structures/ButtonInteraction";
 import { Interaction } from "fishy-bot-framework/lib/structures/Interaction";
+import SelectInteraction from "fishy-bot-framework/lib/structures/SelectInteraction";
+import { SlashCommand } from "fishy-bot-framework/lib/structures/SlashCommand";
 import {
   ApplicationCommandOptionType,
   ComponentStyle,
@@ -34,7 +36,7 @@ const overwrites: PermissionOverwriteOption = {
 let time_cache = new Collection<string, number>();
 const ttl = 12 * 60 * 60 * 1000;
 export const muteMember = async (
-  interaction: Interaction | ButtonInteraction,
+  interaction: SlashCommand | ButtonInteraction | SelectInteraction,
   user_id: string,
   time: number | undefined
 ) => {
@@ -69,8 +71,10 @@ export const muteMember = async (
   new_member.roles.add(muteRole);
 
   const reason =
-    interaction.data.options.find((arg) => arg.name == "reason")?.value ||
-    "No reason provided";
+    interaction instanceof SlashCommand
+      ? interaction.data.options.find((arg) => arg.name == "reason")?.value ||
+        "No reason provided"
+      : "No reason provided";
   const embed = new MessageEmbed();
   embed.setTimestamp();
   embed.setDescription(
@@ -180,7 +184,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
   const member = interaction.data.mentions?.members?.first();
   const user = interaction.data.mentions?.users?.first();
   if (!member || !user) return interaction.sendSilent("No user to mute found");
-  const member_perms = new Permissions(Number.parseInt(member.permissions!));
+  const member_perms = member.permissions;
   if (member_perms.has("MANAGE_MESSAGES") || !user) {
     return interaction.send(new ErrorEmbed("Unable to mute this member"));
   }

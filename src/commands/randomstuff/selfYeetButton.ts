@@ -1,12 +1,12 @@
 import {
   ComponentStyle,
   ComponentType,
-  FishyButtonCommandCode,
-  FishyButtonCommandConfig,
+  FishyComponentCommandCode,
+  FishyComponentCommandConfig,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
-export const run: FishyButtonCommandCode = async (client, interaction) => {
+export const run: FishyComponentCommandCode = async (client, interaction) => {
   if (Math.random() > 0.02 || !interaction.member?.kickable) {
     interaction.send(`${interaction.member} pressed me :(`);
   } else {
@@ -42,7 +42,7 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
   }
 };
 
-export const config: FishyButtonCommandConfig = {
+export const config: FishyComponentCommandConfig = {
   custom_id: "selfyeet",
   atStart: true,
   bot_needed: true,

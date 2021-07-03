@@ -3,12 +3,12 @@ import {
   ComponentButton,
   ComponentStyle,
   ComponentType,
-  FishyButtonCommandCode,
-  FishyButtonCommandConfig,
+  FishyComponentCommandCode,
+  FishyComponentCommandConfig,
 } from "fishy-bot-framework/lib/types";
 
 export function generateFunButtons(
-  currentButtons?: ComponentActionRow[],
+  currentButtons?: { type: number; components: ComponentButton[] }[],
   pressed?: [number, number],
   prefStyle?: ComponentStyle
 ): ComponentActionRow[] {
@@ -41,8 +41,8 @@ export function generateFunButtons(
   return currentButtons;
 }
 
-export const run: FishyButtonCommandCode = async (client, interaction) => {
-  const custom_id = interaction.customID;
+export const run: FishyComponentCommandCode = async (client, interaction) => {
+  const custom_id = interaction.data.custom_id;
   const data = custom_id.slice(config.custom_id.length).split("|");
   const x = data.shift();
   const y = data.shift();
@@ -69,7 +69,7 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
   );
   interaction.edit("Enjoy these buttons", { components: buttons });
 };
-export const config: FishyButtonCommandConfig = {
+export const config: FishyComponentCommandConfig = {
   custom_id: "funButton_",
   atStart: true,
   bot_needed: true,

@@ -1,6 +1,5 @@
 import { Snowflake, TextChannel, Collection, MessageEmbed } from "discord.js";
 import { Interaction } from "fishy-bot-framework/lib/structures/Interaction";
-import { InteractionDataOption } from "fishy-bot-framework/lib/structures/InteractionOptions";
 import {
   ApplicationCommandOption,
   ApplicationCommandOptionType,

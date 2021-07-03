@@ -1,13 +1,13 @@
 import {
   ComponentStyle,
   ComponentType,
-  FishyButtonCommandCode,
-  FishyButtonCommandConfig,
+  FishyComponentCommandCode,
+  FishyComponentCommandConfig,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
-export const run: FishyButtonCommandCode = async (client, interaction) => {
-  const custom_id = interaction.customID;
+export const run: FishyComponentCommandCode = async (client, interaction) => {
+  const custom_id = interaction.data.custom_id;
   const data = custom_id.slice("unban_".length).split("|");
   const memberID = data[0];
   if (!interaction.member || !interaction.guild)
@@ -38,7 +38,7 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
   }
 };
 
-export const config: FishyButtonCommandConfig = {
+export const config: FishyComponentCommandConfig = {
   custom_id: "unban_",
   user_perms: ["BAN_MEMBERS"],
   atStart: true,

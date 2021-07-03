@@ -1,11 +1,11 @@
 import {
-  FishyButtonCommandCode,
-  FishyButtonCommandConfig,
+  FishyComponentCommandCode,
+  FishyComponentCommandConfig,
 } from "fishy-bot-framework/lib/types";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
 
-export const run: FishyButtonCommandCode = async (client, interaction) => {
-  const custom_id = interaction.customID;
+export const run: FishyComponentCommandCode = async (client, interaction) => {
+  const custom_id = interaction.data.custom_id;
   const data = custom_id.slice("kick_".length).split("|");
   const memberID = data[0];
   try {
@@ -28,7 +28,7 @@ export const run: FishyButtonCommandCode = async (client, interaction) => {
   }
 };
 
-export const config: FishyButtonCommandConfig = {
+export const config: FishyComponentCommandConfig = {
   custom_id: "kick_",
   user_perms: ["KICK_MEMBERS"],
   atStart: true,

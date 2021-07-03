@@ -287,18 +287,10 @@ export const run: FishyCommandCode = async (client, interaction) => {
       const Embed = new Discord.MessageEmbed()
         .setTitle(`Role: ${value_role.name}`)
         .setColor("RANDOM");
-      if (
-        new Permissions(Number.parseInt(value_role.permissions)).has(
-          "ADMINISTRATOR"
-        )
-      ) {
+      if (value_role.permissions.has("ADMINISTRATOR")) {
         Embed.setDescription(`ADMINISTRATOR (everything)`);
       } else {
-        Embed.setDescription(
-          `${new Permissions(Number.parseInt(value_role.permissions))
-            .toArray()
-            .join("\n")}`
-        );
+        Embed.setDescription(`${value_role.permissions.toArray().join("\n")}`);
       }
       return interaction.send(Embed);
     }

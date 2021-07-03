@@ -30,8 +30,9 @@ export const run: FishyCommandCode = async (client, interaction) => {
       const failed_roles: Array<string> = [];
 
       const enteredRole = interaction?.mentions?.roles?.first();
-      const stringRoles = sub_util.options.find((opt) => opt.name === "roles")
-        ?.value;
+      const stringRoles = sub_util.options.find(
+        (opt) => opt.name === "roles"
+      )?.value;
       if (enteredRole) {
         const role = await interaction.guild.roles.fetch(
           enteredRole.id,
@@ -194,8 +195,9 @@ export const run: FishyCommandCode = async (client, interaction) => {
       const origin = interaction.data.mentions?.roles?.first();
       const name = sub_util.options.find((opt) => opt.name === "name")?.value;
       const color = sub_util.options.find((opt) => opt.name === "color")?.value;
-      const assign = sub_util.options.find((opt) => opt.name === "assign")
-        ?.value;
+      const assign = sub_util.options.find(
+        (opt) => opt.name === "assign"
+      )?.value;
       if (!origin)
         return interaction.send(
           new ErrorEmbed(
@@ -209,7 +211,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
       if (typeof color === "string")
         data.color = colourNameToHex(color) || color || origin.color;
       else data.color = origin.color;
-      data.permissions = Number.parseInt(origin.permissions);
+      data.permissions = origin.permissions;
       data.mentionable = origin.mentionable;
       data.hoist = origin.hoist;
       data.position = origin.position;
@@ -366,10 +368,9 @@ export const run: FishyCommandCode = async (client, interaction) => {
     const sub_util_name = sub_util?.name;
     if (sub_util_name === "delete-category") {
       const category = interaction.data.mentions?.channels?.first();
-      console.log(category);
       if (!category)
         return interaction.send("1387477777777738383019384585563764");
-      else if (category.type === channel_types.GUILD_CATEGORY) {
+      else if (category.type === "category") {
         const guild_channels = interaction.guild.channels.cache.filter(
           (channel) => channel.parentID === category.id
         );

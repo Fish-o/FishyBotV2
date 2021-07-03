@@ -6,6 +6,7 @@ import {
   ApplicationCommandOption,
   ApplicationCommandOptionType,
 } from "fishy-bot-framework/lib/types";
+import { SlashCommand } from "fishy-bot-framework/lib/structures/SlashCommand";
 
 function randomIntFromInterval(min: number, max: number) {
   // min and max included
@@ -37,9 +38,9 @@ export interface custom_slash_commands {
 
 export async function ParseFishyCode(
   code: string,
-  interaction: Interaction
+  interaction: SlashCommand
 ): Promise<string> {
-  const interaction_options = interaction.raw_interaction;
+  const interaction_options = interaction;
   let ints: { [var_name: string]: number } | undefined = {};
   let strings: { [var_name: string]: string } | undefined = {};
   let members: { [var_name: string]: custom_member } | undefined = {};
@@ -93,7 +94,7 @@ export async function ParseFishyCode(
               mention: `<@${opt.value}>`,
               tag: `${interaction_user.username}#${interaction_user.discriminator}`,
               displayname: `${
-                interaction_member.nick || interaction_user.username
+                interaction_member.nickname || interaction_user.username
               }`,
               dm: async (text: string) => {
                 const user = interaction.guild?.members.cache.get(
