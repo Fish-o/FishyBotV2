@@ -1,4 +1,13 @@
-import { Guild, Message, MessageEmbed, Permissions, Role } from "discord.js";
+import {
+  CategoryChannel,
+  DMChannel,
+  Guild,
+  GuildChannel,
+  Message,
+  MessageEmbed,
+  Permissions,
+  Role,
+} from "discord.js";
 import {
   ApplicationCommandOptionType,
   ComponentActionRow,
@@ -14,6 +23,7 @@ import Discord from "discord.js";
 import QuickChart from "quickchart-js";
 import ms from "ms";
 import { ErrorEmbed } from "fishy-bot-framework/lib/utils/Embeds";
+import { map } from "cheerio/lib/api/traversing";
 const package_json = require("./../../../package.json");
 
 const max_graph_item = 400;
@@ -407,8 +417,110 @@ export const run: FishyCommandCode = async (client, interaction) => {
       embed.setDescription(description);
     }
     interaction.send(embed);
+  } else if (action === "channel") {
+    const channel = interaction.data.mentions?.channels?.first();
+    if (channel) {
+      if (channel instanceof DMChannel)
+        return interaction.send("This command can't be used in DMs");
+      else if (channel instanceof CategoryChannel) {
+        if (!interaction.member?.hasPermission("MANAGE_CHANNELS"))
+          return interaction.send(
+            new ErrorEmbed("You don't have the permission to use this command")
+          );
+        const children = channel.children;
+
+        let description: string = children
+          .array()
+          .map(
+            (channel) =>
+              `<#${channel.id}>
+ID: ${channel.id}
+MemberCount: ${channel.members.size}
+CreatedAt: <t:${channel.createdAt}>
+${
+  channel.permissionOverwrites
+    .map((overwrite) => notesAboutOverwrite(overwrite))
+    .join("") || ""
+}`
+          )
+          .join("\n");
+
+        const embed = new MessageEmbed()
+          .setTitle(`Info about channels in category ${channel.name}`)
+          .setColor("RANDOM")
+          .setDescription(description)
+          .setTimestamp();
+
+        interaction.send(embed);
+      } else if (channel instanceof GuildChannel) {
+        const description = `Mention: <#${channel.id}>
+Name: ${channel.name}
+ID: ${channel.id}
+Type: ${channel.type}
+CreatedAt: <t:${channel.createdAt}>
+MemberCount: ${channel.members.size}
+${
+  channel.permissionOverwrites
+    .map((overwrite) => notesAboutOverwrite(overwrite))
+    .join("") || ""
+}`;
+        const embed = new MessageEmbed()
+          .setTitle(`Info about channel ${channel.name}`)
+          .setColor("RANDOM")
+          .setDescription(description)
+          .setTimestamp();
+        interaction.send(embed);
+      }
+    } else {
+      if (!interaction.member?.hasPermission("MANAGE_CHANNELS"))
+        return interaction.send(
+          new ErrorEmbed("You don't have the permission to use this command")
+        );
+
+      let description: string =
+        interaction.guild?.channels.cache
+          .array()
+          .map((channel) =>
+            channel.type === "category"
+              ? ""
+              : channel.permissionOverwrites
+                  .map((overwrite) =>
+                    notesAboutOverwrite(overwrite) !== ""
+                      ? `<#${channel.id}>\n${notesAboutOverwrite(overwrite)}\n`
+                      : ""
+                  )
+                  .join("") || ""
+          )
+          .join("") || "Nothing to note";
+      if (description.length > 4000)
+        return interaction.send(
+          new ErrorEmbed(
+            "Error",
+            "To many channels to run this command on the entire guild"
+          )
+        );
+      const embed = new MessageEmbed()
+        .setTitle(`All channels of server ${interaction.guild?.name}`)
+        .setColor("RANDOM")
+        .setDescription(description)
+        .setTimestamp();
+
+      interaction.send(embed);
+    }
   }
 };
+function notesAboutOverwrite(overwrite: Discord.PermissionOverwrites) {
+  let res = "";
+  if (overwrite.allow.has("MENTION_EVERYONE"))
+    res += `⚠️Can mention everyone <@${overwrite.type === "role" ? "&" : ""}${
+      overwrite.id
+    }>\n`;
+  else if (overwrite.allow.has("SEND_TTS_MESSAGES"))
+    res += `⚠️Can send tts messages <@${overwrite.type === "role" ? "&" : ""}${
+      overwrite.id
+    }>\n`;
+  return res;
+}
 export async function GenerateChart(
   guild: Guild,
   from?: number,
@@ -591,19 +703,19 @@ export const config: FishyCommandConfig = {
         description: "Get info about the server",
         type: ApplicationCommandOptionType.SUB_COMMAND,
       },
-      /*{
+      {
         name: "channel",
-        description: "Get info about a specific channel",
+        description:
+          "Get info about this servers channels, or a specific category/channel,",
         type: ApplicationCommandOptionType.SUB_COMMAND,
         options: [
           {
-            name: "value",
+            name: "channel",
             description: "The channel to get info about",
             type: ApplicationCommandOptionType.CHANNEL,
-            required: true,
           },
         ],
-      },*/
+      },
       {
         name: "bot",
         description: "Get info about the bot",
