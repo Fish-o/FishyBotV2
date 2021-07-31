@@ -1,4 +1,5 @@
 import {
+  CategoryChannel,
   ColorResolvable,
   Message,
   MessageEmbed,
@@ -9,6 +10,9 @@ import {
 import {
   ApplicationCommandOptionType,
   channel_types,
+  ComponentActionRow,
+  ComponentStyle,
+  ComponentType,
   FishyCommandCode,
   FishyCommandConfig,
   role_object,
@@ -429,6 +433,50 @@ export const run: FishyCommandCode = async (client, interaction) => {
           )
         );
       }
+    } else if (sub_util_name === "move-category") {
+      const sourceID =
+        sub_util.options.find((opt) => opt.name === "source")?.value || "";
+      const destinationID =
+        sub_util.options.find((opt) => opt.name === "destination")?.value || "";
+      if (typeof sourceID !== "string" || typeof destinationID !== "string")
+        return interaction.send(new ErrorEmbed("Category error"));
+
+      const source = interaction.data.mentions?.channels?.get(sourceID);
+      const destination =
+        interaction.data.mentions?.channels?.get(destinationID);
+      if (!source || !destination)
+        return interaction.send(new ErrorEmbed("couldn't fetch categories"));
+      else if (
+        !(source instanceof CategoryChannel) ||
+        !(destination instanceof CategoryChannel)
+      )
+        return interaction.send(
+          new ErrorEmbed(
+            "Error",
+            "Make sure to enter categories, and not normal channels!"
+          )
+        );
+      const embed = new MessageEmbed()
+        .setColor("ORANGE")
+        .setTitle("Moving category")
+        .setDescription(
+          `To confirm you want to move these channels into the <#${destinationID}> category, press the confirm button.
+${source.children.map((channel) => `<#${channel.id}>\n`)}`
+        );
+      const buttons: ComponentActionRow[] = [
+        {
+          type: ComponentType.ActionRow,
+          components: [
+            {
+              type: ComponentType.Button,
+              style: ComponentStyle.Primary,
+              custom_id: `moveCat_${interaction.user.id}|${source.id}|${destination.id}`,
+              label: "Confirm",
+            },
+          ],
+        },
+      ];
+      interaction.send(embed, { components: buttons });
     }
   }
 };
@@ -555,6 +603,26 @@ export const config: FishyCommandConfig = {
               {
                 name: "category",
                 description: "The category to delete",
+                type: ApplicationCommandOptionType.CHANNEL,
+                required: true,
+              },
+            ],
+          },
+          {
+            name: "move-category",
+            description:
+              "Move all channels from a category to another category",
+            type: ApplicationCommandOptionType.SUB_COMMAND,
+            options: [
+              {
+                name: "source",
+                description: "The category with the channels to move",
+                type: ApplicationCommandOptionType.CHANNEL,
+                required: true,
+              },
+              {
+                name: "destination",
+                description: "The destination category",
                 type: ApplicationCommandOptionType.CHANNEL,
                 required: true,
               },

@@ -18,7 +18,7 @@
     "decimal.js": "^10.2.1",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
-    "fishy-bot-framework": "^0.3.2",
+    "fishy-bot-framework": "^0.3.3",
     "fuse.js": "^6.4.6",
     "math-expression-evaluator": "^1.3.7",
     "moment": "^2.29.1",
