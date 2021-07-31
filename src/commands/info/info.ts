@@ -233,7 +233,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
         `Invite`,
         `[Invite link!](https://discord.com/api/oauth2/authorize?client_id=${
           client.user!.id
-        }&permissions=8&scope=bot%20applications.commands`,
+        }&permissions=8&scope=bot%20applications.commands)`,
         true
       )
       .setFooter(`Online since`)
