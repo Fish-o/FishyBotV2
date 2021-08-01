@@ -436,7 +436,7 @@ export const run: FishyCommandCode = async (client, interaction) => {
               `<#${channel.id}>
 ID: ${channel.id}
 MemberCount: ${channel.members.size}
-CreatedAt: <t:${channel.createdAt}>
+CreatedAt: <t:${Math.floor(channel.createdAt.getTime() / 1000)}>
 ${
   channel.permissionOverwrites
     .map((overwrite) => notesAboutOverwrite(overwrite))
@@ -457,7 +457,7 @@ ${
 Name: ${channel.name}
 ID: ${channel.id}
 Type: ${channel.type}
-CreatedAt: <t:${channel.createdAt}>
+CreatedAt: <t:${Math.floor(channel.createdAt.getTime() / 1000)}>
 MemberCount: ${channel.members.size}
 ${
   channel.permissionOverwrites
